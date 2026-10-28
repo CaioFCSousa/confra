@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Painel · Confra 2026</title>
+<link rel="icon" href="/assets/isg-cor.webp">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --branco:#FFFFFF; --preto:#242424; --vermelho:#D31825; --vinho:#B51E29;
+    --cinza:#7A7A7A; --cinza-claro:#E5E5E5; --amarelo:#FCE300; --roxo:#7B3FC4;
+    --fundo:#F4F3F6; --linha:#ECEBEF; --rosa-claro:#FBE8EA;
+    /* cores dos gráficos (validadas p/ daltonismo): vai = vermelho, não vai = roxo, pendente = textura cinza */
+    --c-vai:#D31825; --c-nao:#7B3FC4; --c-pend:#E5E5E5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Poppins',sans-serif;background:var(--fundo);color:var(--preto);min-height:100vh;font-size:14px}
+  button{font:inherit;cursor:pointer}
+  .hidden{display:none !important}
+
+  /* ---------- topo ---------- */
+  header{position:sticky;top:0;z-index:30;background:var(--preto);color:var(--branco)}
+  header::after{content:"";display:block;height:4px;background:linear-gradient(90deg,#C93FD0,var(--vermelho) 45%,var(--vinho) 70%,var(--amarelo))}
+  .topo{max-width:1240px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .topo img{height:40px}
+  .topo h1{font-size:17px;font-weight:700;line-height:1.2}
+  .topo h1 small{display:block;font-size:12px;font-weight:400;opacity:.65}
+  .acoes{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:0;border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:filter .15s,transform .1s}
+  .btn:hover{filter:brightness(1.08)}
+  .btn:active{transform:translateY(1px)}
+  .btn.prim{background:linear-gradient(135deg,var(--vermelho),var(--vinho));color:var(--branco)}
+  .btn.sec{background:rgba(255,255,255,.1);color:var(--branco)}
+  .btn:disabled{opacity:.6;cursor:wait}
+
+  main{max-width:1240px;margin:0 auto;padding:22px 20px 60px}
+  h2{font-size:16px;font-weight:700;margin:30px 0 12px;display:flex;align-items:center;gap:10px}
+  h2::before{content:"";width:18px;height:18px;border-radius:5px;flex:none;
+    background:repeating-linear-gradient(-45deg,var(--vermelho) 0 3px,transparent 3px 7px)}
+  .sub{color:var(--cinza);font-size:12.5px;margin:-6px 0 12px 28px}
+  .card{background:var(--branco);border-radius:16px;box-shadow:0 1px 0 var(--linha),0 6px 18px rgba(36,36,36,.05);padding:18px}
+
+  /* ---------- KPIs ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .kpi{position:relative;overflow:hidden}
+  .kpi small{display:block;color:var(--cinza);font-size:11.5px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  .kpi b{display:block;font-size:30px;font-weight:800;line-height:1.15;margin-top:4px}
+  .kpi span{font-size:12.5px;color:var(--cinza)}
+  .kpi.destaque{background:linear-gradient(135deg,rgba(36,36,36,.12),rgba(36,36,36,.45)),url(/assets/fundo.webp) 20% 10%/260% auto;color:var(--branco)}
+  .kpi.destaque small,.kpi.destaque span{color:rgba(255,255,255,.85)}
+  .kpi.destaque b{color:var(--amarelo)}
+
+  /* ---------- presença por grupo ---------- */
+  .grupos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .grupo h3{font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .grupo h3 em{font-style:normal;font-size:12px;color:var(--cinza);font-weight:500}
+  .taxa{display:flex;align-items:baseline;gap:6px;margin:10px 0 2px}
+  .taxa b{font-size:34px;font-weight:800;line-height:1}
+  .taxa span{color:var(--cinza);font-size:12.5px}
+  .barra{display:flex;gap:2px;height:14px;margin:12px 0 10px;border-radius:4px;overflow:hidden;background:var(--fundo)}
+  .barra i{display:block;height:100%;min-width:0}
+  .barra i.vai{background:var(--c-vai)}
+  .barra i.nao{background:var(--c-nao)}
+  .barra i.pend{background:repeating-linear-gradient(-45deg,#D6D5DA 0 3px,#EEEDF1 3px 7px)}
+  .barra i:hover{filter:brightness(1.1)}
+  .numeros{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .numeros div{font-size:12px;color:var(--cinza)}
+  .numeros div b{display:block;font-size:17px;color:var(--preto);font-weight:700}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .sw.vai{background:var(--c-vai)} .sw.nao{background:var(--c-nao)}
+  .sw.pend{background:repeating-linear-gradient(-45deg,#BDBCC2 0 2px,#EEEDF1 2px 4px)}
+  .resp-taxa{margin-top:10px;font-size:12px;color:var(--cinza)}
+  .legenda{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--preto);margin:0 0 10px 28px}
+
+  /* ---------- abadás ---------- */
+  .abadas{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start}
+  .tam-linha{display:grid;grid-template-columns:64px 1fr 48px;align-items:center;gap:10px;margin:12px 0}
+  .tam-linha .nome{font-weight:700}
+  .tam-linha .trilho{height:26px;background:var(--fundo);border-radius:4px;position:relative}
+  .tam-linha .trilho i{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0;background:var(--c-vai)}
+  .tam-linha .trilho i.t2{background:var(--c-nao)}
+  .tam-linha .valor{font-weight:800;font-size:18px;text-align:right}
+  .tam-total{margin-top:14px;padding-top:12px;border-top:1px solid var(--linha);display:flex;justify-content:space-between;font-weight:600}
+
+  /* ---------- tabelas ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--cinza);font-weight:600;
+     padding:9px 10px;border-bottom:1.5px solid var(--linha);white-space:nowrap}
+  td{padding:9px 10px;border-bottom:1px solid var(--linha);vertical-align:middle}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:#FAFAFB}
+  tfoot td{font-weight:700;border-bottom:0;border-top:1.5px solid var(--linha)}
+  .tabela-wrap{overflow-x:auto}
+  .rolagem{max-height:560px;overflow:auto}
+  .rolagem thead th{position:sticky;top:0;background:var(--branco);z-index:1}
+  .tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+  .tag.INTERNO{background:#F1F0F3;color:var(--preto)}
+  .tag.SEDUC{background:#EFE7FA;color:#5A2C95}
+  .tag.EXTERNO{background:#FFF7C2;color:#6B5A00}
+  .tag.sim{background:var(--rosa-claro);color:var(--vinho)}
+  .tag.nao{background:#EFE7FA;color:#5A2C95}
+
+  .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{border:1.5px solid var(--linha);background:var(--branco);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--preto)}
+  .chip.on{background:var(--preto);border-color:var(--preto);color:var(--branco)}
+  .filtros input,.filtros select{border:1.5px solid var(--linha);border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;background:var(--branco);color:var(--preto)}
+  .filtros input{flex:1;min-width:200px}
+  .filtros input:focus,.filtros select:focus{outline:none;border-color:var(--vermelho)}
+  .contagem{font-size:12.5px;color:var(--cinza);margin-left:auto}
+  .vazio{text-align:center;color:var(--cinza);padding:26px}
+
+  /* ---------- login ---------- */
+  .login{min-height:100vh;display:grid;place-items:center;padding:20px;
+    background:url(/assets/fundo.webp) center/cover}
+  .login .card{width:100%;max-width:380px;padding:28px}
+  .login img{display:block;width:160px;margin:0 auto 16px}
+  .login h1{text-align:center;font-size:18px;margin-bottom:4px}
+  .login p{text-align:center;color:var(--cinza);font-size:13px;margin-bottom:18px}
+  .login label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 6px}
+  .login input{width:100%;padding:12px 14px;border:1.5px solid var(--cinza-claro);border-radius:12px;font:inherit;background:#FAFAFA}
+  .login input:focus{outline:none;border-color:var(--vermelho);background:var(--branco)}
+  .login .btn{width:100%;justify-content:center;margin-top:18px;padding:13px;font-size:15px}
+  .erro{background:var(--rosa-claro);color:var(--vinho);border-left:4px solid var(--vermelho);padding:10px 12px;border-radius:8px;font-size:13px;margin-top:14px}
+
+  /* tooltip dos gráficos */
+  #tip{position:fixed;z-index:50;pointer-events:none;background:var(--preto);color:var(--branco);font-size:12.5px;
+    padding:7px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.2);white-space:nowrap;opacity:0;transition:opacity .1s}
+
+  @media (max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}.grupos,.abadas{grid-template-columns:1fr}}
+  @media (max-width:560px){header{position:static}.kpis{grid-template-columns:repeat(2,1fr)}.kpi b{font-size:24px}.topo img{height:32px}.acoes{width:100%}.acoes .btn{flex:1;justify-content:center}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section class="login" id="telaLogin">
+  <form class="card" id="formLogin">
+    <img src="/assets/logo-confra.webp" alt="CONFRA 2026" style="background:#242424;border-radius:12px;padding:12px">
+    <h1>Painel da organização</h1>
+    <p>Acesso restrito</p>
+    <label for="lEmail">E-mail</label>
+    <input type="email" id="lEmail" autocomplete="username" required>
+    <label for="lSenha">Senha</label>
+    <input type="password" id="lSenha" autocomplete="current-password" required>
+    <button class="btn prim" id="lBtn" type="submit">Entrar</button>
+    <div class="erro hidden" id="lErro"></div>
+  </form>
+</section>
+
+<!-- PAINEL -->
+<div id="telaPainel" class="hidden">
+  <header>
+    <div class="topo">
+      <img src="/assets/logo-confra.webp" alt="CONFRA 2026">
+      <h1>Painel da Confraternização<small id="atualizado">—</small></h1>
+      <div class="acoes">
+        <button class="btn sec" id="bAtualizar" type="button">↻ Atualizar</button>
+        <button class="btn prim" id="bExcel" type="button">⬇ Baixar Excel</button>
+        <button class="btn sec" id="bSair" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="kpis" id="kpis"></div>
+
+    <h2>Presença por grupo</h2>
+    <p class="sub">Confirmação = quantos dos que responderam vão à festa.</p>
+    <div class="legenda">
+      <span><i class="sw vai"></i>Vai</span><span><i class="sw nao"></i>Não vai</span><span><i class="sw pend"></i>Ainda não respondeu</span>
+    </div>
+    <div class="grupos" id="grupos"></div>
+
+    <h2>Abadás</h2>
+    <p class="sub">Só de quem confirmou presença.</p>
+    <div class="abadas">
+      <div class="card" id="abadasBarras"></div>
+      <div class="card tabela-wrap" id="abadasTabela"></div>
+    </div>
+
+    <h2>Respostas</h2>
+    <div class="card">
+      <div class="filtros">
+        <div class="chips" id="fGrupo"></div>
+        <select id="fPresenca" aria-label="Presença">
+          <option value="">Presença: todas</option><option value="Sim">Vai</option><option value="Não">Não vai</option>
+        </select>
+        <select id="fTamanho" aria-label="Tamanho"></select>
+        <input type="search" id="fBusca" placeholder="Buscar nome, e-mail ou empresa…">
+        <span class="contagem" id="fCont"></span>
+      </div>
+      <div class="tabela-wrap rolagem"><table id="tResp"></table></div>
+    </div>
+
+    <h2>Ainda não responderam</h2>
+    <div class="card tabela-wrap rolagem" id="pendentes"></div>
+  </main>
+</div>
+
+<div id="tip"></div>
+
+<script src="/config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+  // ================= sessão / API =================
+  const CHAVE = 'confra_painel_sessao';
+  let sessao = null, D = null;
+  const GRUPOS = ['INTERNO', 'SEDUC', 'EXTERNO'];
+  const ROTULO = { INTERNO: 'Internos', SEDUC: 'SEDUC', EXTERNO: 'Externos' };
+  const filtro = { grupo: '', presenca: '', tamanho: '', busca: '' };
+
+  function lerSessao(){ try { return JSON.parse(sessionStorage.getItem(CHAVE)); } catch(e){ return null; } }
+  function salvarSessao(s){ try { s ? sessionStorage.setItem(CHAVE, JSON.stringify(s)) : sessionStorage.removeItem(CHAVE); } catch(e){} }
+
+  async function entrar(email, senha){
+    const r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
+      body: JSON.stringify({ email, password: senha })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error('E-mail ou senha incorretos.');
+    return { token: j.access_token, expira: Date.now() + (j.expires_in || 3600) * 1000 };
+  }
+
+  async function carregar(){
+    if (!sessao || Date.now() > sessao.expira) throw Object.assign(new Error('Sessão expirada. Entre novamente.'), { login: true });
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/painel_dados', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + sessao.token },
+      body: '{}'
+    });
+    if (r.status === 401 || r.status === 403) throw Object.assign(new Error('Este e-mail não tem acesso ao painel.'), { login: true });
+    if (!r.ok) throw new Error('Erro ao carregar (' + r.status + ').');
+    return r.json();
+  }
+
+  function mostrarLogin(msg){
+    document.getElementById('telaPainel').classList.add('hidden');
+    document.getElementById('telaLogin').classList.remove('hidden');
+    const e = document.getElementById('lErro');
+    e.textContent = msg || ''; e.classList.toggle('hidden', !msg);
+  }
+
+  async function atualizar(){
+    const b = document.getElementById('bAtualizar'); b.disabled = true;
+    try {
+      D = await carregar();
+      document.getElementById('telaLogin').classList.add('hidden');
+      document.getElementById('telaPainel').classList.remove('hidden');
+      render();
+    } catch(err){
+      if (err.login){ salvarSessao(null); sessao = null; mostrarLogin(err.message); }
+      else alert(err.message);
+    } finally { b.disabled = false; }
+  }
+
+  document.getElementById('formLogin').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const b = document.getElementById('lBtn'); b.disabled = true; b.textContent = 'Entrando…';
+    try {
+      sessao = await entrar(document.getElementById('lEmail').value.trim(), document.getElementById('lSenha').value);
+      salvarSessao(sessao); await atualizar();
+    } catch(err){ mostrarLogin(err.message); }
+    finally { b.disabled = false; b.textContent = 'Entrar'; }
+  });
+  document.getElementById('bAtualizar').onclick = atualizar;
+  document.getElementById('bSair').onclick = () => { salvarSessao(null); sessao = null; D = null; mostrarLogin(''); };
+  document.getElementById('bExcel').onclick = baixarExcel;
+
+  // ================= cálculos =================
+  const fmtPct = v => v == null || isNaN(v) ? '—' : (v * 100).toFixed(v === 1 || v === 0 ? 0 : 1).replace('.', ',') + '%';
+  const fmtData = s => s ? new Date(s).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  function tamanhos(){
+    const base = (D.config && D.config.tamanhos) || [];
+    const extras = [...new Set(D.respostas.filter(r => r.disponibilidade === 'Sim' && r.tamanho && !base.includes(r.tamanho)).map(r => r.tamanho))];
+    return base.concat(extras);
+  }
+
+  function statsGrupo(g){
+    const resp = D.respostas.filter(r => r.tipo === g);
+    const vao = resp.filter(r => r.disponibilidade === 'Sim').length;
+    const nao = resp.length - vao;
+    let convidados = null, pend = null;
+    if (g === 'SEDUC'){
+      if (D.seduc_lista.length){ convidados = D.seduc_lista.length; pend = D.seduc_lista.filter(x => !x.respondeu).length; }
+    } else {
+      const cv = D.convidados.filter(c => c.tipo === g);
+      convidados = cv.length; pend = cv.filter(c => c.status === 'PENDENTE').length;
+    }
+    return { g, resp: resp.length, vao, nao, pend, convidados,
+             taxa: resp.length ? vao / resp.length : null,
+             taxaResp: convidados ? resp.length / convidados : null };
+  }
+
+  function abadasPor(chave){ // matriz tamanho x (grupo | empresa)
+    const m = {};
+    D.respostas.filter(r => r.disponibilidade === 'Sim').forEach(r => {
+      const t = r.tamanho || '—', k = r[chave] || '—';
+      m[t] = m[t] || {}; m[t][k] = (m[t][k] || 0) + 1;
+    });
+    return m;
+  }
+
+  function pendentesLista(){
+    const l = D.convidados.filter(c => c.status === 'PENDENTE').map(c => ({
+      tipo: c.tipo, numero: c.numero, nome: c.nome || (c.tipo === 'EXTERNO' ? 'Convite nº ' + String(c.numero).padStart(2, '0') : ''), email: c.email || '', empresa: c.empresa || '' }));
+    D.seduc_lista.filter(x => !x.respondeu).forEach(x => l.push({ tipo: 'SEDUC', numero: null, nome: x.nome, email: '', empresa: '' }));
+    return l.sort((a, b) => GRUPOS.indexOf(a.tipo) - GRUPOS.indexOf(b.tipo) || (a.numero || 0) - (b.numero || 0) || a.nome.localeCompare(b.nome));
+  }
+
+  // ================= render =================
+  function render(){
+    document.getElementById('atualizado').textContent = 'Atualizado em ' + fmtData(D.gerado_em) + ' · prazo ' + (D.config.prazo_texto || '');
+    const S = GRUPOS.map(statsGrupo);
+    const tot = S.reduce((a, s) => ({ resp: a.resp + s.resp, vao: a.vao + s.vao, nao: a.nao + s.nao, pend: a.pend + (s.pend || 0) }), { resp:0, vao:0, nao:0, pend:0 });
+
+    // KPIs
+    document.getElementById('kpis').innerHTML = [
+      ['destaque', 'Vão à festa', tot.vao, fmtPct(tot.resp ? tot.vao / tot.resp : null) + ' de quem respondeu'],
+      ['', 'Responderam', tot.resp, 'no total'],
+      ['', 'Não vão', tot.nao, fmtPct(tot.resp ? tot.nao / tot.resp : null) + ' de quem respondeu'],
+      ['', 'Pendentes', tot.pend, 'ainda não responderam'],
+      ['', 'Abadás', tot.vao, tamanhos().map(t => t + ': ' + D.respostas.filter(r => r.disponibilidade === 'Sim' && r.tamanho === t).length).join(' · ')]
+    ].map(([c, l, v, s]) => '<div class="card kpi ' + c + '"><small>' + l + '</small><b>' + v + '</b><span>' + esc(s) + '</span></div>').join('');
+
+    // grupos
+    document.getElementById('grupos').innerHTML = S.map(s => {
+      const base = s.vao + s.nao + (s.pend || 0) || 1;
+      const seg = (cls, v, lbl) => v ? '<i class="' + cls + '" style="width:' + (v / base * 100) + '%" data-tip="' + esc(ROTULO[s.g] + ' · ' + lbl + ': ' + v + ' (' + fmtPct(v / base) + ')') + '"></i>' : '';
+      return '<div class="card grupo">' +
+        '<h3>' + ROTULO[s.g] + '<em>' + (s.convidados != null ? s.convidados + ' convidados' : 'sem lista de convidados') + '</em></h3>' +
+        '<div class="taxa"><b>' + fmtPct(s.taxa) + '</b><span>de confirmação</span></div>' +
+        '<div class="barra">' + seg('vai', s.vao, 'Vai') + seg('nao', s.nao, 'Não vai') + seg('pend', s.pend, 'Pendente') + '</div>' +
+        '<div class="numeros"><div><i class="sw vai"></i>Vai<b>' + s.vao + '</b></div><div><i class="sw nao"></i>Não vai<b>' + s.nao + '</b></div>' +
+        '<div><i class="sw pend"></i>Pendente<b>' + (s.pend == null ? '—' : s.pend) + '</b></div></div>' +
+        '<div class="resp-taxa">' + s.resp + ' responderam' + (s.taxaResp != null ? ' · ' + fmtPct(s.taxaResp) + ' dos convidados' : '') + '</div>' +
+      '</div>';
+    }).join('');
+
+    // abadás — barras
+    const T = tamanhos(), porGrupo = abadasPor('tipo');
+    const totT = T.map(t => GRUPOS.reduce((a, g) => a + ((porGrupo[t] || {})[g] || 0), 0));
+    const maxT = Math.max(1, ...totT);
+    document.getElementById('abadasBarras').innerHTML =
+      '<h3 style="font-size:15px">Total por tamanho</h3>' +
+      T.map((t, i) => '<div class="tam-linha"><span class="nome">' + esc(t) + '</span>' +
+        '<div class="trilho"><i class="' + (i % 2 ? 't2' : '') + '" style="width:' + (totT[i] / maxT * 100) + '%" data-tip="' + esc(t + ': ' + totT[i] + ' abadás (' + fmtPct(tot.vao ? totT[i] / tot.vao : null) + ')') + '"></i></div>' +
+        '<span class="valor">' + totT[i] + '</span></div>').join('') +
+      '<div class="tam-total"><span>Total de abadás</span><span>' + totT.reduce((a, b) => a + b, 0) + '</span></div>';
+
+    // abadás — tabela tamanho x grupo e x empresa (internos)
+    const porEmp = abadasPor('empresa');
+    const empresas = [...new Set(D.respostas.filter(r => r.tipo === 'INTERNO' && r.disponibilidade === 'Sim' && r.empresa).map(r => r.empresa))].sort();
+    const linha = (rot, vals) => '<tr><td><b>' + esc(rot) + '</b></td>' + vals.map(v => '<td class="num">' + v + '</td>').join('') + '</tr>';
+    let h = '<h3 style="font-size:15px;margin-bottom:6px">Tamanho × grupo</h3><table><thead><tr><th>Tamanho</th>' +
+      GRUPOS.map(g => '<th class="num">' + ROTULO[g] + '</th>').join('') + '<th class="num">Total</th></tr></thead><tbody>' +
+      T.map((t, i) => linha(t, GRUPOS.map(g => (porGrupo[t] || {})[g] || 0).concat([totT[i]]))).join('') +
+      '</tbody><tfoot>' + linha('Total', GRUPOS.map(g => T.reduce((a, t) => a + ((porGrupo[t] || {})[g] || 0), 0)).concat([totT.reduce((a, b) => a + b, 0)])) + '</tfoot></table>';
+    if (empresas.length){
+      h += '<h3 style="font-size:15px;margin:20px 0 6px">Internos por empresa</h3><table><thead><tr><th>Tamanho</th>' +
+        empresas.map(e => '<th class="num">' + esc(e) + '</th>').join('') + '</tr></thead><tbody>' +
+        T.map(t => linha(t, empresas.map(e => D.respostas.filter(r => r.tipo === 'INTERNO' && r.disponibilidade === 'Sim' && r.tamanho === t && r.empresa === e).length))).join('') +
+        '</tbody></table>';
+    }
+    document.getElementById('abadasTabela').innerHTML = h;
+
+    // filtros
+    document.getElementById('fGrupo').innerHTML = [['', 'Todos']].concat(GRUPOS.map(g => [g, ROTULO[g]]))
+      .map(([v, l]) => '<button type="button" class="chip' + (filtro.grupo === v ? ' on' : '') + '" data-g="' + v + '">' + l + '</button>').join('');
+    document.getElementById('fTamanho').innerHTML = '<option value="">Abadá: todos</option>' + T.map(t => '<option' + (filtro.tamanho === t ? ' selected' : '') + '>' + esc(t) + '</option>').join('');
+    renderRespostas();
+
+    // pendentes
+    const P = pendentesLista();
+    document.getElementById('pendentes').innerHTML = P.length
+      ? '<table><thead><tr><th>Grupo</th><th class="num">Nº</th><th>Nome</th><th>E-mail</th><th>Empresa</th></tr></thead><tbody>' +
+        P.map(p => '<tr><td><span class="tag ' + p.tipo + '">' + ROTULO[p.tipo] + '</span></td><td class="num">' + (p.numero ? String(p.numero).padStart(2, '0') : '') +
+          '</td><td>' + esc(p.nome) + '</td><td>' + esc(p.email) + '</td><td>' + esc(p.empresa) + '</td></tr>').join('') + '</tbody></table>'
+      : '<p class="vazio">Todo mundo já respondeu 🎉</p>';
+  }
+
+  function respostasFiltradas(){
+    const b = filtro.busca.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    return D.respostas.filter(r =>
+      (!filtro.grupo || r.tipo === filtro.grupo) &&
+      (!filtro.presenca || r.disponibilidade === filtro.presenca) &&
+      (!filtro.tamanho || r.tamanho === filtro.tamanho) &&
+      (!b || [r.nome, r.email, r.empresa].join(' ').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(b))
+    ).slice().reverse();
+  }
+
+  function renderRespostas(){
+    const L = respostasFiltradas();
+    document.getElementById('fCont').textContent = L.length + ' de ' + D.respostas.length + ' respostas';
+    document.getElementById('tResp').innerHTML =
+      '<thead><tr><th>Data</th><th>Grupo</th><th class="num">Nº</th><th>Nome</th><th>E-mail</th><th>Empresa</th><th>Presença</th><th>Abadá</th></tr></thead><tbody>' +
+      (L.length ? L.map(r => '<tr><td>' + fmtData(r.criado_em) + '</td><td><span class="tag ' + r.tipo + '">' + ROTULO[r.tipo] + '</span></td>' +
+        '<td class="num">' + (r.numero ? String(r.numero).padStart(2, '0') : '') + '</td><td><b>' + esc(r.nome) + '</b></td><td>' + esc(r.email) + '</td><td>' + esc(r.empresa) + '</td>' +
+        '<td><span class="tag ' + (r.disponibilidade === 'Sim' ? 'sim">Vai' : 'nao">Não vai') + '</span></td><td><b>' + (r.disponibilidade === 'Sim' ? esc(r.tamanho) : '—') + '</b></td></tr>').join('')
+        : '<tr><td colspan="8" class="vazio">Nenhuma resposta com esses filtros.</td></tr>') + '</tbody>';
+  }
+
+  document.getElementById('fGrupo').addEventListener('click', e => {
+    const c = e.target.closest('.chip'); if (!c) return;
+    filtro.grupo = c.dataset.g;
+    [...document.querySelectorAll('#fGrupo .chip')].forEach(x => x.classList.toggle('on', x === c));
+    renderRespostas();
+  });
+  document.getElementById('fPresenca').onchange = e => { filtro.presenca = e.target.value; renderRespostas(); };
+  document.getElementById('fTamanho').onchange = e => { filtro.tamanho = e.target.value; renderRespostas(); };
+  document.getElementById('fBusca').oninput = e => { filtro.busca = e.target.value.trim(); renderRespostas(); };
+
+  // tooltip
+  const tip = document.getElementById('tip');
+  document.addEventListener('mousemove', e => {
+    const t = e.target.closest && e.target.closest('[data-tip]');
+    if (!t){ tip.style.opacity = 0; return; }
+    tip.textContent = t.dataset.tip; tip.style.opacity = 1;
+    tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + 'px';
+    tip.style.top = (e.clientY - 36) + 'px';
+  });
+
+  // atualização automática a cada 60s enquanto a aba estiver aberta
+  setInterval(() => { if (D && !document.hidden) atualizar(); }, 60000);
+
+  // ================= Excel =================
+  async function baixarExcel(){
+    if (!window.ExcelJS){ alert('Não foi possível carregar o gerador de Excel. Verifique a internet e tente de novo.'); return; }
+    const b = document.getElementById('bExcel'); b.disabled = true; b.textContent = 'Gerando…';
+    try {
+      const wb = new ExcelJS.Workbook(); wb.creator = 'Painel Confra 2026'; wb.created = new Date();
+      const VERM = 'FFD31825', VINHO = 'FFB51E29', PRETO = 'FF242424', ZEBRA = 'FFF7F6F8', BORDA = 'FFE5E5E5', ROXO = 'FF7B3FC4';
+      const borda = { top:{style:'thin',color:{argb:BORDA}}, left:{style:'thin',color:{argb:BORDA}}, bottom:{style:'thin',color:{argb:BORDA}}, right:{style:'thin',color:{argb:BORDA}} };
+      const T = tamanhos(), S = GRUPOS.map(statsGrupo);
+      // o Excel não guarda fuso: grava a hora local (Brasília) como está na tela
+      const horaLocal = s => { const d = new Date(s); return new Date(d.getTime() - d.getTimezoneOffset() * 60000); };
+
+      function titulo(ws, texto, colunas){
+        ws.mergeCells(1, 1, 1, colunas);
+        const c = ws.getCell(1, 1); c.value = texto;
+        c.font = { name:'Calibri', size:16, bold:true, color:{argb:'FFFFFFFF'} };
+        c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:PRETO} };
+        c.alignment = { vertical:'middle', indent:1 }; ws.getRow(1).height = 30;
+        ws.mergeCells(2, 1, 2, colunas);
+        const s = ws.getCell(2, 1); s.value = 'Confraternização 2026 · ' + (D.config.tema || '') + ' · ' + (D.config.data_evento || '') + '   |   Gerado em ' + fmtData(new Date().toISOString());
+        s.font = { size:10, italic:true, color:{argb:'FF7A7A7A'} }; s.alignment = { indent:1 };
+        ws.getRow(2).height = 18;
+      }
+      function cabecalho(row, cor){
+        row.eachCell(c => { c.font = { name:'Calibri', bold:true, color:{argb:'FFFFFFFF'} }; c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:cor || VERM} };
+          c.alignment = { vertical:'middle', horizontal:'center', wrapText:true }; c.border = borda; });
+        row.height = 22;
+      }
+      function corpo(ws, ini, fim){
+        for (let i = ini; i <= fim; i++){
+          const row = ws.getRow(i);
+          row.eachCell({ includeEmpty:true }, c => { c.border = borda; c.alignment = Object.assign({ vertical:'middle' }, c.alignment || {});
+            if ((i - ini) % 2) c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:ZEBRA} }; });
+        }
+      }
+      function subtitulo(ws, r, texto, colunas){
+        ws.mergeCells(r, 1, r, colunas);
+        const c = ws.getCell(r, 1); c.value = texto; c.font = { name:'Calibri', bold:true, size:12, color:{argb:VINHO} };
+        c.border = { bottom:{ style:'medium', color:{argb:VERM} } }; ws.getRow(r).height = 22;
+      }
+      function tabelaLista(ws, linhaIni, colunas, dados){
+        const head = ws.getRow(linhaIni); head.values = colunas.map(c => c.titulo); cabecalho(head);
+        dados.forEach((d, i) => { const row = ws.getRow(linhaIni + 1 + i); row.values = colunas.map(c => c.valor(d));
+          colunas.forEach((c, k) => { if (c.fmt) row.getCell(k + 1).numFmt = c.fmt; if (c.centro) row.getCell(k + 1).alignment = { horizontal:'center' }; }); });
+        corpo(ws, linhaIni + 1, linhaIni + dados.length);
+        colunas.forEach((c, k) => ws.getColumn(k + 1).width = c.largura || 16);
+        if (dados.length) ws.autoFilter = { from:{ row:linhaIni, column:1 }, to:{ row:linhaIni + dados.length, column:colunas.length } };
+        ws.views = [{ state:'frozen', ySplit:linhaIni }];
+      }
+
+      // ---- 1. Resumo ----
+      const R = wb.addWorksheet('Resumo', { properties:{ tabColor:{ argb:VERM } } });
+      const nc = Math.max(8, T.length + 2);
+      titulo(R, 'RESUMO — CONFRA 2026', nc);
+      let r = 4;
+      subtitulo(R, r, 'Presença por grupo', nc); r++;
+      R.getRow(r).values = ['Grupo', 'Convidados', 'Responderam', '% resposta', 'Vão', 'Não vão', 'Pendentes', '% confirmação']; cabecalho(R.getRow(r)); r++;
+      const ini1 = r;
+      S.forEach(s => { R.getRow(r).values = [ROTULO[s.g], s.convidados == null ? '—' : s.convidados, s.resp, s.taxaResp, s.vao, s.nao, s.pend == null ? '—' : s.pend, s.taxa]; r++; });
+      const tR = S.reduce((a, s) => a + s.resp, 0), tV = S.reduce((a, s) => a + s.vao, 0);
+      const tC = S.reduce((a, s) => a + (s.convidados || 0), 0);
+      R.getRow(r).values = ['TOTAL', tC, tR, tC ? tR / tC : null, tV, S.reduce((a, s) => a + s.nao, 0), S.reduce((a, s) => a + (s.pend || 0), 0), tR ? tV / tR : null];
+      corpo(R, ini1, r);
+      R.getRow(r).eachCell(c => { c.font = { bold:true }; c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFBE8EA'} }; });
+      for (let i = ini1; i <= r; i++){ R.getCell(i, 4).numFmt = '0.0%'; R.getCell(i, 8).numFmt = '0.0%'; R.getCell(i, 8).font = { bold:true, color:{argb:VINHO} };
+        for (let k = 2; k <= 8; k++) R.getCell(i, k).alignment = { horizontal:'center', vertical:'middle' }; }
+      r += 3;
+
+      subtitulo(R, r, 'Abadás por tamanho (quem vai)', nc); r++;
+      R.getRow(r).values = ['Tamanho'].concat(GRUPOS.map(g => ROTULO[g]), ['Total', '% do total']); cabecalho(R.getRow(r)); r++;
+      const ini2 = r, porGrupo = abadasPor('tipo');
+      T.forEach(t => { const vals = GRUPOS.map(g => (porGrupo[t] || {})[g] || 0); const s = vals.reduce((a, b) => a + b, 0);
+        R.getRow(r).values = [t].concat(vals, [s, tV ? s / tV : 0]); r++; });
+      const totG = GRUPOS.map(g => T.reduce((a, t) => a + ((porGrupo[t] || {})[g] || 0), 0));
+      R.getRow(r).values = ['TOTAL'].concat(totG, [totG.reduce((a, b) => a + b, 0), tV ? 1 : 0]);
+      corpo(R, ini2, r);
+      R.getRow(r).eachCell(c => { c.font = { bold:true }; c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFBE8EA'} }; });
+      for (let i = ini2; i <= r; i++){ R.getCell(i, GRUPOS.length + 3).numFmt = '0.0%'; for (let k = 2; k <= GRUPOS.length + 3; k++) R.getCell(i, k).alignment = { horizontal:'center' }; R.getCell(i, 1).font = { bold:true }; }
+      r += 3;
+
+      const empresas = [...new Set(D.respostas.filter(x => x.tipo === 'INTERNO' && x.disponibilidade === 'Sim' && x.empresa).map(x => x.empresa))].sort();
+      if (empresas.length){
+        subtitulo(R, r, 'Abadás dos internos por empresa', nc); r++;
+        R.getRow(r).values = ['Tamanho'].concat(empresas, ['Total']); cabecalho(R.getRow(r), ROXO); r++;
+        const ini3 = r;
+        T.forEach(t => { const vals = empresas.map(e => D.respostas.filter(x => x.tipo === 'INTERNO' && x.disponibilidade === 'Sim' && x.tamanho === t && x.empresa === e).length);
+          R.getRow(r).values = [t].concat(vals, [vals.reduce((a, b) => a + b, 0)]); r++; });
+        corpo(R, ini3, r - 1);
+        for (let i = ini3; i < r; i++){ R.getCell(i, 1).font = { bold:true }; for (let k = 2; k <= empresas.length + 2; k++) R.getCell(i, k).alignment = { horizontal:'center' }; }
+      }
+      [18, 14, 14, 13, 12, 12, 12, 15].forEach((w, i) => R.getColumn(i + 1).width = w);
+      for (let i = 9; i <= nc; i++) R.getColumn(i).width = 12;
+      R.pageSetup = { orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 };
+
+      // ---- 2..n. Listas ----
+      const colsResp = [
+        { titulo:'Data/hora', valor:x => horaLocal(x.criado_em), fmt:'dd/mm/yyyy hh:mm', largura:17 },
+        { titulo:'Grupo', valor:x => ROTULO[x.tipo], largura:11, centro:true },
+        { titulo:'Nº convite', valor:x => x.numero || null, largura:11, centro:true },
+        { titulo:'Nome', valor:x => x.nome, largura:34 },
+        { titulo:'E-mail', valor:x => x.email || '', largura:38 },
+        { titulo:'Empresa', valor:x => x.empresa || '', largura:12, centro:true },
+        { titulo:'Presença', valor:x => x.disponibilidade === 'Sim' ? 'Vai' : 'Não vai', largura:11, centro:true },
+        { titulo:'Abadá', valor:x => x.disponibilidade === 'Sim' ? x.tamanho : '—', largura:10, centro:true }
+      ];
+      const ordem = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR');
+      function abaLista(nome, cor, dados, cols){
+        const ws = wb.addWorksheet(nome, { properties:{ tabColor:{ argb:cor } } });
+        titulo(ws, nome.toUpperCase() + '  (' + dados.length + ')', cols.length);
+        tabelaLista(ws, 4, cols, dados);
+        ws.pageSetup = { orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0, printTitlesRow:'4:4' };
+        // destaca presença
+        dados.forEach((d, i) => { const c = ws.getRow(5 + i).getCell(cols.findIndex(x => x.titulo === 'Presença') + 1);
+          if (c && c.value) c.font = { bold:true, color:{ argb: c.value === 'Vai' ? VERM : ROXO } }; });
+        return ws;
+      }
+      abaLista('Todas as respostas', PRETO, D.respostas.slice().sort((a, b) => GRUPOS.indexOf(a.tipo) - GRUPOS.indexOf(b.tipo) || ordem(a, b)), colsResp);
+      GRUPOS.forEach(g => abaLista(ROTULO[g], g === 'SEDUC' ? ROXO : g === 'EXTERNO' ? 'FFFCE300' : 'FF7A7A7A',
+        D.respostas.filter(x => x.tipo === g).sort(ordem), colsResp.filter(c => !(g !== 'EXTERNO' && c.titulo === 'Nº convite') && !(g === 'SEDUC' && (c.titulo === 'E-mail' || c.titulo === 'Empresa')))));
+
+      // lista de entrega de abadás: só quem vai, agrupado por tamanho
+      const vao = D.respostas.filter(x => x.disponibilidade === 'Sim').sort((a, b) => T.indexOf(a.tamanho) - T.indexOf(b.tamanho) || ordem(a, b));
+      const wsA = wb.addWorksheet('Entrega de abadás', { properties:{ tabColor:{ argb:VINHO } } });
+      const colsA = [ { titulo:'Abadá', valor:x => x.tamanho, largura:10, centro:true }, { titulo:'Nome', valor:x => x.nome, largura:34 },
+        { titulo:'Grupo', valor:x => ROTULO[x.tipo], largura:11, centro:true }, { titulo:'Empresa', valor:x => x.empresa || '', largura:12, centro:true },
+        { titulo:'Entregue (✓)', valor:() => '', largura:14, centro:true }, { titulo:'Assinatura', valor:() => '', largura:30 } ];
+      titulo(wsA, 'ENTREGA DE ABADÁS  (' + vao.length + ')', colsA.length);
+      tabelaLista(wsA, 4, colsA, vao);
+      vao.forEach((d, i) => { wsA.getRow(5 + i).height = 22; wsA.getRow(5 + i).getCell(1).font = { bold:true, color:{ argb: T.indexOf(d.tamanho) % 2 ? ROXO : VERM } }; });
+      wsA.pageSetup = { orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0, printTitlesRow:'4:4' };
+
+      // pendentes
+      const P = pendentesLista();
+      const wsP = wb.addWorksheet('Pendentes', { properties:{ tabColor:{ argb:'FF7A7A7A' } } });
+      const colsP = [ { titulo:'Grupo', valor:x => ROTULO[x.tipo], largura:11, centro:true }, { titulo:'Nº convite', valor:x => x.numero || null, largura:11, centro:true },
+        { titulo:'Nome', valor:x => x.nome, largura:34 }, { titulo:'E-mail', valor:x => x.email, largura:38 }, { titulo:'Empresa', valor:x => x.empresa, largura:12, centro:true } ];
+      titulo(wsP, 'AINDA NÃO RESPONDERAM  (' + P.length + ')', colsP.length);
+      tabelaLista(wsP, 4, colsP, P);
+
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const a = document.createElement('a');
+      const hoje = new Date(); const pad = n => String(n).padStart(2, '0');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Confra2026_respostas_' + hoje.getFullYear() + pad(hoje.getMonth() + 1) + pad(hoje.getDate()) + '_' + pad(hoje.getHours()) + pad(hoje.getMinutes()) + '.xlsx';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    } catch(err){ console.error(err); alert('Erro ao gerar o Excel: ' + err.message); }
+    finally { b.disabled = false; b.textContent = '⬇ Baixar Excel'; }
+  }
+
+  // ================= início =================
+  sessao = lerSessao();
+  if (sessao) atualizar(); else mostrarLogin('');
+</script>
+</body>
+</html>
