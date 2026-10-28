@@ -56,11 +56,15 @@
     background:linear-gradient(180deg,transparent 55%,var(--amarelo) 55%)}
 
   .info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0 4px}
-  .info div{background:var(--preto);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
-  .info div::after{content:"";position:absolute;right:-6px;bottom:-6px;width:54px;height:54px;opacity:.18;
+  /* quadros com a arte da festa (mesmo fundo granulado do cabeçalho) */
+  .info div{position:relative;overflow:hidden;border-radius:14px;padding:14px 16px;
+    background:linear-gradient(135deg,rgba(36,36,36,.05),rgba(36,36,36,.32)),url(/assets/fundo.webp) 20% 8%/240% auto no-repeat;
+    box-shadow:0 8px 18px rgba(122,47,208,.22),inset 0 0 0 1px rgba(255,255,255,.14)}
+  .info div + div{background-position:center,85% 22%}
+  .info div::after{content:"";position:absolute;right:-6px;bottom:-6px;width:54px;height:54px;opacity:.35;
     background:repeating-linear-gradient(-45deg,var(--branco) 0 5px,transparent 5px 12px)}
-  .info small{display:block;color:var(--cinza-claro);opacity:.75;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
-  .info b{font-size:16px;color:var(--amarelo)}
+  .info small{display:block;color:var(--branco);opacity:.92;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
+  .info b{font-size:16px;color:var(--amarelo);text-shadow:0 2px 8px rgba(36,36,36,.45)}
 
   /* divisor com as listras diagonais da logo ISG */
   hr{border:0;height:8px;margin:24px 0;border-radius:4px;opacity:.9;
@@ -190,10 +194,10 @@
       campos += q(n++, 'E-mail', '<input type="email" id="email" autocomplete="email" required>');
     }
 
-    campos += q(n++, 'Você tem disponibilidade para participar da confraternização no dia '+esc(CTX.dataEvento.split(' ')[0])+'?',
-      radios('disponibilidade', [['SIM','Sim, tenho disponibilidade.'],['NAO','Não tenho disponibilidade.']], true));
+    campos += q(n++, 'Você irá participar da festa no dia '+esc(CTX.dataEvento.split(' ')[0])+'?',
+      radios('disponibilidade', [['SIM','Sim, confirmo presença.'],['NAO','Não poderei participar.']], true));
 
-    campos += '<div id="blocoTamanho">'+q(n++, 'Qual é o tamanho do seu abadá?', radios('tamanho', CTX.tamanhos))+'</div>';
+    campos += '<div id="blocoTamanho" class="hidden">'+q(n++, 'Qual é o tamanho do seu abadá?', radios('tamanho', CTX.tamanhos))+'</div>';
 
     el.innerHTML =
       '<section class="intro">'+
@@ -213,7 +217,10 @@
 
     document.querySelectorAll('input[name=disponibilidade]').forEach(r =>
       r.addEventListener('change', () => {
-        document.getElementById('blocoTamanho').classList.toggle('hidden', r.value==='NAO' && r.checked);
+        // o tamanho do abadá só aparece para quem confirmou presença
+        const vai = document.querySelector('input[name=disponibilidade]:checked').value === 'SIM';
+        document.getElementById('blocoTamanho').classList.toggle('hidden', !vai);
+        if (!vai) document.querySelectorAll('input[name=tamanho]').forEach(t => t.checked = false);
       }));
     document.getElementById('f').addEventListener('submit', enviar);
   }

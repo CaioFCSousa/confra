@@ -20,7 +20,7 @@ create table if not exists public.config (
   prazo_texto         text        not null default '10 de novembro de 2026',
   dominios            text[]      not null default '{oros.com.br,vobys.com.br,trully.com.br}', -- vazio = qualquer domínio
   empresas            text[]      not null default '{OROS,VOBYS,TRULLY}',
-  tamanhos            text[]      not null default '{P,M,G,GG}',
+  tamanhos            text[]      not null default '{M/G,GG/XG}',
   validar_lista_seduc boolean     not null default true
 );
 insert into public.config (id) values (1) on conflict (id) do nothing;
@@ -201,7 +201,7 @@ grant execute on function public.enviar_resposta(json)       to anon, authentica
 create or replace view public.resumo_abadas with (security_invoker = true) as
   select tamanho, count(*) as quantidade
     from public.respostas where disponibilidade = 'Sim'
-   group by tamanho order by array_position(array['P','M','G','GG'], tamanho);
+   group by tamanho order by array_position(array['M/G','GG/XG'], tamanho);
 
 create or replace view public.resumo_geral with (security_invoker = true) as
   select tipo,
