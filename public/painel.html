@@ -170,7 +170,7 @@
     <h2>Presença por grupo</h2>
     <p class="sub">Confirmação = quantos dos que responderam vão à festa.</p>
     <div class="legenda">
-      <span><i class="sw vai"></i>Vai</span><span><i class="sw nao"></i>Não vai</span><span><i class="sw pend"></i>Ainda não respondeu</span>
+      <span><i class="sw vai"></i>Vai</span><span><i class="sw nao"></i>Não vai</span><span><i class="sw pend"></i>Convite externo ainda sem resposta</span>
     </div>
     <div class="grupos" id="grupos"></div>
 
@@ -195,7 +195,7 @@
       <div class="tabela-wrap rolagem"><table id="tResp"></table></div>
     </div>
 
-    <h2>Ainda não responderam</h2>
+    <h2>Convites externos sem resposta</h2>
     <div class="card tabela-wrap rolagem" id="pendentes"></div>
   </main>
 </div>
@@ -285,10 +285,9 @@
     const resp = D.respostas.filter(r => r.tipo === g);
     const vao = resp.filter(r => r.disponibilidade === 'Sim').length;
     const nao = resp.length - vao;
+    // Internos e SEDUC: só Vai / Não vai. Pendentes apenas para os 30 convites externos.
     let convidados = null, pend = null;
-    if (g === 'SEDUC'){
-      if (D.seduc_lista.length){ convidados = D.seduc_lista.length; pend = D.seduc_lista.filter(x => !x.respondeu).length; }
-    } else {
+    if (g === 'EXTERNO'){
       const cv = D.convidados.filter(c => c.tipo === g);
       convidados = cv.length; pend = cv.filter(c => c.status === 'PENDENTE').length;
     }
@@ -307,9 +306,8 @@
   }
 
   function pendentesLista(){
-    const l = D.convidados.filter(c => c.status === 'PENDENTE').map(c => ({
+    const l = D.convidados.filter(c => c.tipo === 'EXTERNO' && c.status === 'PENDENTE').map(c => ({
       tipo: c.tipo, numero: c.numero, nome: c.nome || (c.tipo === 'EXTERNO' ? 'Convite nº ' + String(c.numero).padStart(2, '0') : ''), email: c.email || '', empresa: c.empresa || '' }));
-    D.seduc_lista.filter(x => !x.respondeu).forEach(x => l.push({ tipo: 'SEDUC', numero: null, nome: x.nome, email: '', empresa: '' }));
     return l.sort((a, b) => GRUPOS.indexOf(a.tipo) - GRUPOS.indexOf(b.tipo) || (a.numero || 0) - (b.numero || 0) || a.nome.localeCompare(b.nome));
   }
 
@@ -324,7 +322,7 @@
       ['destaque', 'Vão à festa', tot.vao, fmtPct(tot.resp ? tot.vao / tot.resp : null) + ' de quem respondeu'],
       ['', 'Responderam', tot.resp, 'no total'],
       ['', 'Não vão', tot.nao, fmtPct(tot.resp ? tot.nao / tot.resp : null) + ' de quem respondeu'],
-      ['', 'Pendentes', tot.pend, 'ainda não responderam'],
+      ['', 'Convites externos', tot.pend, 'ainda sem resposta'],
       ['', 'Abadás', tot.vao, tamanhos().map(t => t + ': ' + D.respostas.filter(r => r.disponibilidade === 'Sim' && r.tamanho === t).length).join(' · ')]
     ].map(([c, l, v, s]) => '<div class="card kpi ' + c + '"><small>' + l + '</small><b>' + v + '</b><span>' + esc(s) + '</span></div>').join('');
 
@@ -333,12 +331,12 @@
       const base = s.vao + s.nao + (s.pend || 0) || 1;
       const seg = (cls, v, lbl) => v ? '<i class="' + cls + '" style="width:' + (v / base * 100) + '%" data-tip="' + esc(ROTULO[s.g] + ' · ' + lbl + ': ' + v + ' (' + fmtPct(v / base) + ')') + '"></i>' : '';
       return '<div class="card grupo">' +
-        '<h3>' + ROTULO[s.g] + '<em>' + (s.convidados != null ? s.convidados + ' convidados' : 'sem lista de convidados') + '</em></h3>' +
+        '<h3>' + ROTULO[s.g] + '<em>' + (s.convidados != null ? s.convidados + ' convites' : s.resp + ' respostas') + '</em></h3>' +
         '<div class="taxa"><b>' + fmtPct(s.taxa) + '</b><span>de confirmação</span></div>' +
         '<div class="barra">' + seg('vai', s.vao, 'Vai') + seg('nao', s.nao, 'Não vai') + seg('pend', s.pend, 'Pendente') + '</div>' +
         '<div class="numeros"><div><i class="sw vai"></i>Vai<b>' + s.vao + '</b></div><div><i class="sw nao"></i>Não vai<b>' + s.nao + '</b></div>' +
-        '<div><i class="sw pend"></i>Pendente<b>' + (s.pend == null ? '—' : s.pend) + '</b></div></div>' +
-        '<div class="resp-taxa">' + s.resp + ' responderam' + (s.taxaResp != null ? ' · ' + fmtPct(s.taxaResp) + ' dos convidados' : '') + '</div>' +
+        (s.pend != null ? '<div><i class="sw pend"></i>Pendente<b>' + s.pend + '</b></div>' : '<div></div>') + '</div>' +
+        '<div class="resp-taxa">' + s.resp + ' responderam' + (s.taxaResp != null ? ' · ' + fmtPct(s.taxaResp) + ' dos convites' : '') + '</div>' +
       '</div>';
     }).join('');
 
@@ -381,7 +379,7 @@
       ? '<table><thead><tr><th>Grupo</th><th class="num">Nº</th><th>Nome</th><th>E-mail</th><th>Empresa</th></tr></thead><tbody>' +
         P.map(p => '<tr><td><span class="tag ' + p.tipo + '">' + ROTULO[p.tipo] + '</span></td><td class="num">' + (p.numero ? String(p.numero).padStart(2, '0') : '') +
           '</td><td>' + esc(p.nome) + '</td><td>' + esc(p.email) + '</td><td>' + esc(p.empresa) + '</td></tr>').join('') + '</tbody></table>'
-      : '<p class="vazio">Todo mundo já respondeu 🎉</p>';
+      : '<p class="vazio">Todos os convites externos já foram respondidos 🎉</p>';
   }
 
   function respostasFiltradas(){
@@ -488,8 +486,7 @@
       const ini1 = r;
       S.forEach(s => { R.getRow(r).values = [ROTULO[s.g], s.convidados == null ? '—' : s.convidados, s.resp, s.taxaResp, s.vao, s.nao, s.pend == null ? '—' : s.pend, s.taxa]; r++; });
       const tR = S.reduce((a, s) => a + s.resp, 0), tV = S.reduce((a, s) => a + s.vao, 0);
-      const tC = S.reduce((a, s) => a + (s.convidados || 0), 0);
-      R.getRow(r).values = ['TOTAL', tC, tR, tC ? tR / tC : null, tV, S.reduce((a, s) => a + s.nao, 0), S.reduce((a, s) => a + (s.pend || 0), 0), tR ? tV / tR : null];
+            R.getRow(r).values = ['TOTAL', '—', tR, null, tV, S.reduce((a, s) => a + s.nao, 0), S.reduce((a, s) => a + (s.pend || 0), 0), tR ? tV / tR : null];
       corpo(R, ini1, r);
       R.getRow(r).eachCell(c => { c.font = { bold:true }; c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFBE8EA'} }; });
       for (let i = ini1; i <= r; i++){ R.getCell(i, 4).numFmt = '0.0%'; R.getCell(i, 8).numFmt = '0.0%'; R.getCell(i, 8).font = { bold:true, color:{argb:VINHO} };
@@ -561,10 +558,10 @@
 
       // pendentes
       const P = pendentesLista();
-      const wsP = wb.addWorksheet('Pendentes', { properties:{ tabColor:{ argb:'FF7A7A7A' } } });
+      const wsP = wb.addWorksheet('Externos pendentes', { properties:{ tabColor:{ argb:'FF7A7A7A' } } });
       const colsP = [ { titulo:'Grupo', valor:x => ROTULO[x.tipo], largura:11, centro:true }, { titulo:'Nº convite', valor:x => x.numero || null, largura:11, centro:true },
         { titulo:'Nome', valor:x => x.nome, largura:34 }, { titulo:'E-mail', valor:x => x.email, largura:38 }, { titulo:'Empresa', valor:x => x.empresa, largura:12, centro:true } ];
-      titulo(wsP, 'AINDA NÃO RESPONDERAM  (' + P.length + ')', colsP.length);
+      titulo(wsP, 'CONVITES EXTERNOS SEM RESPOSTA  (' + P.length + ')', colsP.length);
       tabelaLista(wsP, 4, colsP, P);
 
       const buf = await wb.xlsx.writeBuffer();
