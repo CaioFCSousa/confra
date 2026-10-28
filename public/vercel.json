@@ -2,10 +2,7 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/((?!assets/|config\\.js).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/((?!assets/|config\\.js|painel).*)", "destination": "/index.html" }
   ],
   "headers": [
     { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }] },
