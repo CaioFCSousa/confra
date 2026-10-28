@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confraternização 2026 🎉</title>
+<link rel="icon" href="/assets/isg-cor.webp">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* paleta corporativa */
+    --branco:#FFFFFF; --preto:#242424; --vermelho:#D31825; --vinho:#B51E29;
+    --cinza:#7A7A7A; --cinza-claro:#E5E5E5;
+    /* cores de apoio tiradas da arte da festa */
+    --amarelo:#FCE300; --magenta:#C93FD0; --rosa-claro:#FBE8EA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Poppins',sans-serif;color:var(--preto);min-height:100vh;padding:24px 16px 48px;background:#7a2fd0}
+  /* Fundo granulado da arte em toda a página */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;background:url(/assets/fundo.webp) center/cover no-repeat}
+  .wrap{max-width:680px;margin:0 auto}
+
+  /* ---------- Apresentação (estilo save the date) ---------- */
+  .hero{position:relative;overflow:hidden;border-radius:20px 20px 0 0;min-height:300px;
+    background:url(/assets/fundo.webp) center 35%/cover no-repeat;
+    display:grid;grid-template-columns:1.25fr 1fr;align-items:end;gap:12px;padding:34px 30px 26px}
+  .hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(36,36,36,0) 55%,rgba(36,36,36,.28) 100%)}
+  .hero > *{position:relative;z-index:2}
+  .hero .logo{width:100%;max-width:320px;align-self:center;filter:drop-shadow(0 6px 18px rgba(36,36,36,.25))}
+  .hero .lado{display:flex;flex-direction:column;align-items:flex-end;gap:26px;padding-bottom:4px}
+  .hero .std{width:100%;max-width:190px;align-self:center}
+  .hero .isg{width:100%;max-width:210px}
+  .mascara{position:absolute;z-index:1;pointer-events:none;filter:drop-shadow(0 10px 18px rgba(36,36,36,.35))}
+  .mascara.rosa{width:150px;top:-22px;right:-18px;transform:rotate(14deg)}
+  .mascara.verde{width:110px;top:12px;left:51%;transform:rotate(-14deg)}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  @media (max-width:560px){
+    .hero{grid-template-columns:1fr;justify-items:center;text-align:center;padding:56px 22px 26px;gap:26px;min-height:0}
+    .hero .logo{max-width:220px}
+    .hero .lado{align-items:center;gap:20px}
+    .hero .std{max-width:170px}
+    .hero .isg{max-width:170px}
+    .mascara.rosa{width:92px;top:-8px;right:-14px}
+    .mascara.verde{width:78px;top:auto;bottom:58px;left:-12px}
+  }
+
+  /* ---------- Card ---------- */
+  .card{position:relative;background:var(--branco);border-radius:0 0 20px 20px;padding:30px 28px 26px;
+    box-shadow:0 18px 40px rgba(36,36,36,.28)}
+  /* faixa de transição entre a arte e o formulário */
+  .card::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;
+    background:linear-gradient(90deg,var(--magenta),var(--vermelho) 45%,var(--vinho) 70%,var(--amarelo))}
+
+  .intro p{color:var(--preto);line-height:1.65;margin-bottom:12px;font-size:15px}
+  .intro .tema{font-weight:800;color:var(--preto);padding:0 4px;
+    background:linear-gradient(180deg,transparent 55%,var(--amarelo) 55%)}
+
+  .info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0 4px}
+  .info div{background:var(--preto);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
+  .info div::after{content:"";position:absolute;right:-6px;bottom:-6px;width:54px;height:54px;opacity:.18;
+    background:repeating-linear-gradient(-45deg,var(--branco) 0 5px,transparent 5px 12px)}
+  .info small{display:block;color:var(--cinza-claro);opacity:.75;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
+  .info b{font-size:16px;color:var(--amarelo)}
+
+  /* divisor com as listras diagonais da logo ISG */
+  hr{border:0;height:8px;margin:24px 0;border-radius:4px;opacity:.9;
+    background:repeating-linear-gradient(-45deg,var(--vermelho) 0 4px,transparent 4px 10px)}
+  .obrig{color:var(--cinza);font-size:12px;margin-bottom:20px}
+  .obrig em,.q label em{color:var(--vermelho);font-style:normal}
+
+  .q{margin-bottom:24px}
+  .q > label{display:flex;gap:10px;align-items:flex-start;font-weight:600;margin-bottom:10px;font-size:15px;line-height:1.45}
+  .q > label .n{flex:none;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;
+    background:var(--vermelho);color:var(--branco);font-size:13px;font-weight:800;font-style:normal;margin-top:-1px}
+  .q .hint{color:var(--cinza);font-size:12px;margin:-4px 0 8px 36px}
+  input[type=text],input[type=email],select{width:100%;padding:13px 14px;border:1.5px solid var(--cinza-claro);
+    border-radius:12px;font:inherit;color:var(--preto);background:#FAFAFA;transition:border .15s,box-shadow .15s,background .15s}
+  input:hover{border-color:#cfcfcf}
+  input:focus,select:focus{outline:none;border-color:var(--vermelho);background:var(--branco);box-shadow:0 0 0 4px rgba(211,24,37,.12)}
+
+  .opcoes{display:flex;flex-wrap:wrap;gap:10px}
+  .opcoes.col{flex-direction:column}
+  .opcoes label{cursor:pointer}
+  .opcoes input{position:absolute;opacity:0}
+  .opcoes span{display:block;padding:12px 18px;border:1.5px solid var(--cinza-claro);border-radius:12px;background:#FAFAFA;
+    font-weight:500;transition:all .15s;min-width:58px;text-align:center;color:var(--preto)}
+  .opcoes.col span{text-align:left;padding-left:44px;position:relative}
+  .opcoes.col span::before{content:"";position:absolute;left:16px;top:50%;width:16px;height:16px;margin-top:-8px;
+    border-radius:50%;border:2px solid var(--cinza);background:var(--branco);transition:all .15s}
+  .opcoes label:hover span{border-color:var(--vermelho);background:var(--rosa-claro)}
+  .opcoes input:checked + span{background:linear-gradient(135deg,var(--vermelho),var(--vinho));border-color:var(--vinho);
+    color:var(--branco);box-shadow:0 6px 16px rgba(181,30,41,.28)}
+  .opcoes.col input:checked + span::before{border-color:var(--amarelo);background:var(--amarelo);box-shadow:inset 0 0 0 3px var(--vinho)}
+  .opcoes input:focus-visible + span{outline:2px solid var(--preto);outline-offset:2px}
+
+  .erro{display:none;background:var(--rosa-claro);color:var(--vinho);border-left:4px solid var(--vermelho);
+    padding:12px 14px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500}
+  button{width:100%;padding:16px;border:0;border-radius:14px;color:var(--branco);letter-spacing:.3px;
+    background:linear-gradient(135deg,var(--vermelho),var(--vinho));box-shadow:0 10px 22px rgba(181,30,41,.3);
+    font:700 16px 'Poppins',sans-serif;cursor:pointer;transition:transform .12s,box-shadow .15s,filter .15s}
+  button:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 14px 26px rgba(181,30,41,.36)}
+  button:active{transform:translateY(0)}
+  button:disabled{background:var(--cinza);box-shadow:none;cursor:wait;transform:none}
+  .rodape{text-align:center;color:var(--cinza);font-size:13px;margin-top:20px}
+  .rodape-logo{display:block;width:118px;margin:18px auto 0}
+
+  .status{text-align:center;padding:18px 0 6px}
+  .status .emoji{font-size:54px;margin-bottom:10px}
+  .status h2{font-weight:800;color:var(--preto);margin-bottom:8px}
+  .status h2::after{content:"";display:block;width:56px;height:5px;border-radius:3px;margin:10px auto 0;
+    background:linear-gradient(90deg,var(--vermelho),var(--amarelo))}
+  .status p{color:var(--cinza);line-height:1.6}
+  .hidden{display:none}
+  @media (max-width:420px){.card{padding-left:20px;padding-right:20px}.info{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <img class="mascara rosa" src="/assets/mascara-rosa.webp" alt="">
+    <img class="mascara verde" src="/assets/mascara-verde.webp" alt="">
+    <h1 class="sr">Confraternização 2026</h1>
+    <img class="logo" src="/assets/logo-confra.webp" alt="CONFRA 2026">
+    <div class="lado">
+      <img class="std" src="/assets/save-the-date.webp" alt="Save the date 12.12.26">
+      <img class="isg" src="/assets/isg-branco.webp" alt="ISG Participações S.A.">
+    </div>
+  </header>
+  <main class="card" id="conteudo"><div class="status"><p>Carregando…</p></div></main>
+</div>
+
+<script src="/config.js"></script>
+<script>
+  // ---------- Conexão com o Supabase (sem biblioteca: só fetch nas duas funções) ----------
+  async function rpc(fn, body){
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }
+
+  // Aceita: /?f=interno  /interno  /?f=seduc  /seduc  /?t=TOKEN  /c/TOKEN
+  function lerLink(){
+    const q = new URLSearchParams(location.search);
+    const partes = location.pathname.split('/').filter(Boolean);
+    let f = q.get('f'), t = q.get('t');
+    if (!f && !t && partes.length){
+      if (partes[0] === 'c' && partes[1]) t = partes[1];
+      else f = partes[0];
+    }
+    return { p_f: f || null, p_t: t || null };
+  }
+
+  let CTX;
+  const el = document.getElementById('conteudo');
+
+  rpc('obter_contexto', lerLink())
+    .then(ctx => { CTX = ctx; iniciar(); })
+    .catch(() => { el.innerHTML = '<div class="status"><div class="emoji">📡</div><h2>Sem conexão</h2><p>Não foi possível carregar o formulário. Recarregue a página.</p></div>'; });
+
+  function iniciar(){
+  if (CTX.estado !== 'ABERTO') {
+    const telas = {
+      ENCERRADO:['⏰','Prazo encerrado','O período de confirmação já terminou. Em caso de dúvidas, procure a organização.'],
+      JA_RESPONDIDO:['✅','Resposta já registrada','Este link já foi utilizado. Obrigado pela participação!'],
+      INVALIDO:['🔒','Link inválido','Este link não é válido. Confira se copiou o endereço completo ou procure a organização.']
+    };
+    const [e,t,m] = telas[CTX.estado] || telas.INVALIDO;
+    el.innerHTML = '<div class="status"><div class="emoji">'+e+'</div><h2>'+t+'</h2><p>'+m+'</p></div>';
+  } else {
+    renderForm();
+  }
+  }
+
+  function renderForm(){
+    const t = CTX.tipo;
+    let n = 1, campos = '';
+
+    campos += q(n++, 'Nome completo', '<input type="text" id="nome" autocomplete="name" required>',
+      t==='INTERNO' ? 'Exatamente como está no seu cadastro.' : 'Nome e sobrenome, sem abreviações.');
+
+    if (t === 'INTERNO') {
+      campos += q(n++, 'E-mail corporativo', '<input type="email" id="email" autocomplete="email" required>');
+      campos += q(n++, 'Empresa', radios('empresa', CTX.empresas, false, CTX.empresaSugerida));
+    }
+    if (t === 'EXTERNO') {
+      campos += q(n++, 'E-mail', '<input type="email" id="email" autocomplete="email" required>');
+    }
+
+    campos += q(n++, 'Você tem disponibilidade para participar da confraternização no dia '+esc(CTX.dataEvento.split(' ')[0])+'?',
+      radios('disponibilidade', [['SIM','Sim, tenho disponibilidade.'],['NAO','Não tenho disponibilidade.']], true));
+
+    campos += '<div id="blocoTamanho">'+q(n++, 'Qual é o tamanho do seu abadá?', radios('tamanho', CTX.tamanhos))+'</div>';
+
+    el.innerHTML =
+      '<section class="intro">'+
+        '<p>Estamos preparando uma confraternização especial para celebrar mais um ano de conquistas, integração e momentos compartilhados!</p>'+
+        '<p>Neste ano, o tema da nossa festa será <span class="tema">'+esc(CTX.tema)+'</span>! 🥳🎊</p>'+
+        '<p>Precisamos confirmar sua disponibilidade para a data prevista e coletar o tamanho do abadá para a confecção.</p>'+
+        '<div class="info"><div><small>Data</small><b>'+esc(CTX.dataEvento)+'</b></div>'+
+        '<div><small>⏰ Responda até</small><b>'+esc(CTX.prazoTexto)+'</b></div></div>'+
+      '</section><hr>'+
+      '<p class="obrig"><em>*</em> Indica uma pergunta obrigatória</p>'+
+      '<form id="f" novalidate>'+campos+
+        '<div class="erro" id="erro"></div>'+
+        '<button type="submit" id="btn">Enviar resposta</button>'+
+      '</form>'+
+      '<p class="rodape">Agradecemos pela colaboração e esperamos você nessa festa! 🎊🎶</p>'+
+      '<img class="rodape-logo" src="/assets/isg-cor.webp" alt="ISG Participações S.A.">';
+
+    document.querySelectorAll('input[name=disponibilidade]').forEach(r =>
+      r.addEventListener('change', () => {
+        document.getElementById('blocoTamanho').classList.toggle('hidden', r.value==='NAO' && r.checked);
+      }));
+    document.getElementById('f').addEventListener('submit', enviar);
+  }
+
+  function enviar(ev){
+    ev.preventDefault();
+    const val = id => (document.getElementById(id)||{}).value || '';
+    const radio = n => (document.querySelector('input[name='+n+']:checked')||{}).value || '';
+    const d = {
+      tipo: CTX.tipo, token: CTX.token,
+      nome: val('nome').replace(/\s+/g,' ').trim(),
+      email: val('email').trim(),
+      empresa: radio('empresa'),
+      disponibilidade: radio('disponibilidade'),
+      tamanho: radio('tamanho')
+    };
+
+    // Validação no navegador (o servidor valida de novo)
+    const partes = d.nome.split(' ').filter(p => p.length >= 2);
+    if (partes.length < 2) return mostrarErro('Informe seu nome completo (nome e sobrenome).');
+    if ((CTX.tipo==='INTERNO'||CTX.tipo==='EXTERNO') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email))
+      return mostrarErro('Informe um e-mail válido.');
+    if (CTX.tipo==='INTERNO' && !d.empresa) return mostrarErro('Selecione a empresa.');
+    if (!d.disponibilidade) return mostrarErro('Informe sua disponibilidade.');
+    if (d.disponibilidade==='SIM' && !d.tamanho) return mostrarErro('Escolha o tamanho do abadá.');
+
+    const btn = document.getElementById('btn');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    rpc('enviar_resposta', { d })
+      .then(r => {
+        if (!r.ok) { btn.disabled=false; btn.textContent='Enviar resposta'; return mostrarErro(r.msg); }
+        el.innerHTML = '<div class="status"><div class="emoji">'+(r.presenca?'🥳':'💌')+'</div>'+
+          '<h2>'+(r.presenca?'Presença confirmada!':'Resposta registrada')+'</h2>'+
+          '<p>'+(r.presenca?'Seu abadá já está na lista. Nos vemos na '+esc(CTX.tema)+'! 🎶':'Que pena! Obrigado por nos avisar.')+'</p>'+
+          '<img class="rodape-logo" src="/assets/isg-cor.webp" alt="ISG Participações S.A."></div>';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .catch(() => { btn.disabled=false; btn.textContent='Enviar resposta'; mostrarErro('Falha de conexão. Tente novamente.'); });
+  }
+
+  function q(num, titulo, html, hint){
+    return '<div class="q"><label><i class="n">'+num+'</i><span>'+titulo+' <em>*</em></span></label>'+(hint?'<p class="hint">'+hint+'</p>':'')+html+'</div>';
+  }
+  function radios(nome, itens, coluna, marcado){
+    return '<div class="opcoes'+(coluna?' col':'')+'">'+itens.map(it=>{
+      const [v,l] = Array.isArray(it) ? it : [it,it];
+      return '<label><input type="radio" name="'+nome+'" value="'+esc(v)+'"'+(v===marcado?' checked':'')+'><span>'+esc(l)+'</span></label>';
+    }).join('')+'</div>';
+  }
+  function mostrarErro(m){ const e=document.getElementById('erro'); e.textContent=m; e.style.display='block'; e.scrollIntoView({behavior:'smooth',block:'center'}); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+</body>
+</html>
