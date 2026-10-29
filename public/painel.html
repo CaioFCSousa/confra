@@ -101,6 +101,9 @@
   .tag.EXTERNO{background:#FFF7C2;color:#6B5A00}
   .tag.sim{background:var(--rosa-claro);color:var(--vinho)}
   .tag.nao{background:#EFE7FA;color:#5A2C95}
+  .tag.ok{background:#F1F0F3;color:#242424}
+  .tag.confere{background:#EFE7FA;color:#5A2C95}
+  .tag.fora{background:#FFF1B8;color:#6B4A00;box-shadow:inset 0 0 0 1.5px #E0B400}
 
   .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
   .chips{display:flex;gap:6px;flex-wrap:wrap}
@@ -189,6 +192,9 @@
           <option value="">Presença: todas</option><option value="Sim">Vai</option><option value="Não">Não vai</option>
         </select>
         <select id="fTamanho" aria-label="Tamanho"></select>
+        <select id="fConf" aria-label="Conferência SEDUC">
+          <option value="">Lista SEDUC: todas</option><option>Na lista</option><option>Confere com a lista</option><option>Fora da lista — conferir</option>
+        </select>
         <input type="search" id="fBusca" placeholder="Buscar nome, e-mail ou empresa…">
         <span class="contagem" id="fCont"></span>
       </div>
@@ -210,7 +216,7 @@
   let sessao = null, D = null;
   const GRUPOS = ['INTERNO', 'SEDUC', 'EXTERNO'];
   const ROTULO = { INTERNO: 'Internos', SEDUC: 'SEDUC', EXTERNO: 'Externos' };
-  const filtro = { grupo: '', presenca: '', tamanho: '', busca: '' };
+  const filtro = { grupo: '', presenca: '', tamanho: '', conf: '', busca: '' };
 
   function lerSessao(){ try { return JSON.parse(sessionStorage.getItem(CHAVE)); } catch(e){ return null; } }
   function salvarSessao(s){ try { s ? sessionStorage.setItem(CHAVE, JSON.stringify(s)) : sessionStorage.removeItem(CHAVE); } catch(e){} }
@@ -388,19 +394,28 @@
       (!filtro.grupo || r.tipo === filtro.grupo) &&
       (!filtro.presenca || r.disponibilidade === filtro.presenca) &&
       (!filtro.tamanho || r.tamanho === filtro.tamanho) &&
+      (!filtro.conf || r.conferencia === filtro.conf) &&
       (!b || [r.nome, r.email, r.empresa].join(' ').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(b))
     ).slice().reverse();
+  }
+
+  // marcação da conferência dos nomes da SEDUC
+  function conferenciaTag(r){
+    if (r.tipo !== 'SEDUC' || !r.conferencia) return '';
+    if (r.conferencia === 'Na lista') return '<span class="tag ok">✓ Na lista</span>';
+    if (r.conferencia === 'Confere com a lista') return '<span class="tag confere" title="Nome na lista">≈ ' + esc(r.nome_lista) + '</span>';
+    return '<span class="tag fora">⚠ Fora da lista — conferir</span>';
   }
 
   function renderRespostas(){
     const L = respostasFiltradas();
     document.getElementById('fCont').textContent = L.length + ' de ' + D.respostas.length + ' respostas';
     document.getElementById('tResp').innerHTML =
-      '<thead><tr><th>Data</th><th>Grupo</th><th class="num">Nº</th><th>Nome</th><th>E-mail</th><th>Empresa</th><th>Presença</th><th>Abadá</th></tr></thead><tbody>' +
+      '<thead><tr><th>Data</th><th>Grupo</th><th class="num">Nº</th><th>Nome</th><th>E-mail</th><th>Empresa</th><th>Presença</th><th>Abadá</th><th>Lista SEDUC</th></tr></thead><tbody>' +
       (L.length ? L.map(r => '<tr><td>' + fmtData(r.criado_em) + '</td><td><span class="tag ' + r.tipo + '">' + ROTULO[r.tipo] + '</span></td>' +
         '<td class="num">' + (r.numero ? String(r.numero).padStart(2, '0') : '') + '</td><td><b>' + esc(r.nome) + '</b></td><td>' + esc(r.email) + '</td><td>' + esc(r.empresa) + '</td>' +
-        '<td><span class="tag ' + (r.disponibilidade === 'Sim' ? 'sim">Vai' : 'nao">Não vai') + '</span></td><td><b>' + (r.disponibilidade === 'Sim' ? esc(r.tamanho) : '—') + '</b></td></tr>').join('')
-        : '<tr><td colspan="8" class="vazio">Nenhuma resposta com esses filtros.</td></tr>') + '</tbody>';
+        '<td><span class="tag ' + (r.disponibilidade === 'Sim' ? 'sim">Vai' : 'nao">Não vai') + '</span></td><td><b>' + (r.disponibilidade === 'Sim' ? esc(r.tamanho) : '—') + '</b></td><td>' + conferenciaTag(r) + '</td></tr>').join('')
+        : '<tr><td colspan="9" class="vazio">Nenhuma resposta com esses filtros.</td></tr>') + '</tbody>';
   }
 
   document.getElementById('fGrupo').addEventListener('click', e => {
@@ -411,6 +426,7 @@
   });
   document.getElementById('fPresenca').onchange = e => { filtro.presenca = e.target.value; renderRespostas(); };
   document.getElementById('fTamanho').onchange = e => { filtro.tamanho = e.target.value; renderRespostas(); };
+  document.getElementById('fConf').onchange = e => { filtro.conf = e.target.value; renderRespostas(); };
   document.getElementById('fBusca').oninput = e => { filtro.busca = e.target.value.trim(); renderRespostas(); };
 
   // tooltip
@@ -528,7 +544,9 @@
         { titulo:'E-mail', valor:x => x.email || '', largura:38 },
         { titulo:'Empresa', valor:x => x.empresa || '', largura:12, centro:true },
         { titulo:'Presença', valor:x => x.disponibilidade === 'Sim' ? 'Vai' : 'Não vai', largura:11, centro:true },
-        { titulo:'Abadá', valor:x => x.disponibilidade === 'Sim' ? x.tamanho : '—', largura:10, centro:true }
+        { titulo:'Abadá', valor:x => x.disponibilidade === 'Sim' ? x.tamanho : '—', largura:10, centro:true },
+        { titulo:'Nome na lista SEDUC', valor:x => x.tipo === 'SEDUC' ? (x.nome_lista || '') : '', largura:32, seduc:true },
+        { titulo:'Conferência SEDUC', valor:x => x.tipo === 'SEDUC' ? (x.conferencia || '') : '', largura:24, centro:true, seduc:true }
       ];
       const ordem = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR');
       function abaLista(nome, cor, dados, cols){
@@ -539,11 +557,16 @@
         // destaca presença
         dados.forEach((d, i) => { const c = ws.getRow(5 + i).getCell(cols.findIndex(x => x.titulo === 'Presença') + 1);
           if (c && c.value) c.font = { bold:true, color:{ argb: c.value === 'Vai' ? VERM : ROXO } }; });
+        // destaca quem está fora da lista da SEDUC
+        const kc = cols.findIndex(x => x.titulo === 'Conferência SEDUC');
+        if (kc >= 0) dados.forEach((d, i) => { if (d.conferencia === 'Fora da lista — conferir'){
+          ws.getRow(5 + i).eachCell({ includeEmpty:true }, c => c.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFFF1B8' } });
+          ws.getRow(5 + i).getCell(kc + 1).font = { bold:true, color:{ argb:'FF6B4A00' } }; } });
         return ws;
       }
       abaLista('Todas as respostas', PRETO, D.respostas.slice().sort((a, b) => GRUPOS.indexOf(a.tipo) - GRUPOS.indexOf(b.tipo) || ordem(a, b)), colsResp);
       GRUPOS.forEach(g => abaLista(ROTULO[g], g === 'SEDUC' ? ROXO : g === 'EXTERNO' ? 'FFFCE300' : 'FF7A7A7A',
-        D.respostas.filter(x => x.tipo === g).sort(ordem), colsResp.filter(c => !(g !== 'EXTERNO' && c.titulo === 'Nº convite') && !(g === 'SEDUC' && (c.titulo === 'E-mail' || c.titulo === 'Empresa')))));
+        D.respostas.filter(x => x.tipo === g).sort(ordem), colsResp.filter(c => !(g !== 'EXTERNO' && c.titulo === 'Nº convite') && !(g === 'SEDUC' && (c.titulo === 'E-mail' || c.titulo === 'Empresa')) && !(g !== 'SEDUC' && c.seduc))));
 
       // lista de entrega de abadás: só quem vai, agrupado por tamanho
       const vao = D.respostas.filter(x => x.disponibilidade === 'Sim').sort((a, b) => T.indexOf(a.tamanho) - T.indexOf(b.tamanho) || ordem(a, b));
