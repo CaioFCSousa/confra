@@ -246,11 +246,11 @@
         '<ul class="sugestoes" id="sugestoes" role="listbox" hidden></ul></div>'
       : '<input type="text" id="nome" autocomplete="name" required>';
     campos += q(n++, 'Nome completo', campoNome,
-      t==='INTERNO' ? 'Exatamente como está no seu cadastro.'
+      t==='INTERNO' ? 'Nome e sobrenome, sem abreviações.'
       : t==='SEDUC' ? 'Digite seu nome completo. Se ele aparecer na lista, é só tocar nele.' : 'Nome e sobrenome, sem abreviações.');
 
     if (t === 'INTERNO') {
-      campos += q(n++, 'E-mail corporativo', '<input type="email" id="email" autocomplete="email" required>');
+      campos += q(n++, 'E-mail', '<input type="email" id="email" autocomplete="email" required>');
       campos += q(n++, 'Empresa', radios('empresa', CTX.empresas, false, CTX.empresaSugerida));
     }
     if (t === 'EXTERNO') {
