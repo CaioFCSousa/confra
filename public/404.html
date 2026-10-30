@@ -201,6 +201,7 @@
   const chaveFim = () => 'confra2026_fim_' + (CTX.tipo === 'EXTERNO' ? 'c_' + CTX.token : CTX.tipo);
   function lerFim(){ try { return JSON.parse(localStorage.getItem(chaveFim())); } catch(e){ return null; } }
   function salvarFim(v){ try { localStorage.setItem(chaveFim(), JSON.stringify(v)); } catch(e){} }
+  function apagarFim(){ try { localStorage.removeItem(chaveFim()); } catch(e){} }
 
   function telaFinalizado(dados, agora){
     const check = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -224,7 +225,16 @@
 
   function iniciar(){
   if (CTX.estado === 'JA_RESPONDIDO') { telaFinalizado(null, false); return; }
-  if (CTX.estado === 'ABERTO' && lerFim()) { telaFinalizado(lerFim(), false); return; }
+  if (CTX.estado === 'ABERTO' && lerFim()) {
+    // confere no banco se a resposta ainda existe; se foi apagada, libera o formulário
+    const fim = lerFim();
+    if (!fim.recibo) { apagarFim(); renderForm(); return; }
+    el.innerHTML = '<div class="status"><p>Carregando…</p></div>';
+    rpc('verificar_recibo', { p_recibo: fim.recibo })
+      .then(existe => { if (existe) telaFinalizado(fim, false); else { apagarFim(); renderForm(); } })
+      .catch(() => telaFinalizado(fim, false));
+    return;
+  }
   if (CTX.estado !== 'ABERTO') {
     const telas = {
       ENCERRADO:['⏰','Prazo encerrado','O período de confirmação já terminou. Em caso de dúvidas, procure a organização.'],
@@ -265,7 +275,7 @@
     el.innerHTML =
       '<section class="intro">'+
         '<p>Estamos preparando uma confraternização especial para celebrar mais um ano de conquistas, integração e momentos compartilhados!</p>'+
-        '<p><p><b>Venha participar do bloquinho ISG</b> 🥳🎊.</p>'+
+        '<p>Venha participar do bloquinho <b>ISG</b> 🥳🎊.</p>'+
         '<p>Precisamos confirmar sua disponibilidade para a data prevista e coletar o tamanho do abadá para a confecção.</p>'+
         '<div class="info"><div><small>Data</small><b>'+esc(CTX.dataEvento)+'</b></div>'+
         '<div><small>⏰ Responda até</small><b>'+esc(CTX.prazoTexto)+'</b></div></div>'+
@@ -376,7 +386,7 @@
           if (/já existe uma resposta|já foi utilizado/i.test(r.msg || '')) { telaFinalizado(null, false); return; }
           btn.disabled=false; btn.textContent='Enviar resposta'; return mostrarErro(r.msg);
         }
-        const fim = { nome: d.nome, presenca: !!r.presenca, tamanho: r.presenca ? d.tamanho : '',
+        const fim = { recibo: r.recibo, nome: d.nome, presenca: !!r.presenca, tamanho: r.presenca ? d.tamanho : '',
                       quando: new Date().toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) };
         salvarFim(fim);
         telaFinalizado(fim, true);
