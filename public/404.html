@@ -128,6 +128,22 @@
   .status h2::after{content:"";display:block;width:56px;height:5px;border-radius:3px;margin:10px auto 0;
     background:linear-gradient(90deg,var(--vermelho),var(--amarelo))}
   .status p{color:var(--cinza);line-height:1.6}
+  /* tela "formulário finalizado" */
+  .fim{text-align:center;padding:8px 0 4px}
+  .fim .selo{width:84px;height:84px;margin:4px auto 14px;border-radius:50%;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--vermelho),var(--vinho));box-shadow:0 10px 24px rgba(181,30,41,.3)}
+  .fim .selo svg{width:42px;height:42px}
+  .fim .faixa{display:inline-block;background:var(--preto);color:var(--amarelo);font-weight:800;font-size:12px;letter-spacing:2px;
+    padding:6px 14px;border-radius:999px;margin-bottom:12px}
+  .fim h2{font-size:24px;font-weight:800;color:var(--preto);line-height:1.2}
+  .fim .msg{color:var(--cinza);line-height:1.6;margin:10px auto 18px;max-width:420px}
+  .fim .recibo{text-align:left;background:#FAFAFA;border:1.5px solid var(--cinza-claro);border-radius:14px;padding:6px 16px;max-width:420px;margin:0 auto}
+  .fim .recibo div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--cinza-claro);font-size:14px}
+  .fim .recibo div:last-child{border-bottom:0}
+  .fim .recibo span{color:var(--cinza)}
+  .fim .recibo b{text-align:right;color:var(--preto)}
+  .fim .fechar{margin-top:16px;font-size:13px;color:var(--cinza)}
+  .fim .fechar b{color:var(--vinho)}
   .hidden{display:none}
   @media (max-width:420px){.card{padding-left:20px;padding-right:20px}.info{grid-template-columns:1fr}}
 </style>
@@ -179,11 +195,39 @@
     .then(ctx => { CTX = ctx; iniciar(); })
     .catch(() => { el.innerHTML = '<div class="status"><div class="emoji">📡</div><h2>Sem conexão</h2><p>Não foi possível carregar o formulário. Recarregue a página.</p></div>'; });
 
+  // ---------- formulário finalizado (vale para Interno, SEDUC e Externo) ----------
+  // Guarda neste aparelho que o formulário já foi enviado. O servidor também bloqueia
+  // uma segunda resposta (mesmo e-mail, mesmo nome ou mesmo convite).
+  const chaveFim = () => 'confra2026_fim_' + (CTX.tipo === 'EXTERNO' ? 'c_' + CTX.token : CTX.tipo);
+  function lerFim(){ try { return JSON.parse(localStorage.getItem(chaveFim())); } catch(e){ return null; } }
+  function salvarFim(v){ try { localStorage.setItem(chaveFim(), JSON.stringify(v)); } catch(e){} }
+
+  function telaFinalizado(dados, agora){
+    const check = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    let recibo = '';
+    if (dados){
+      const linhas = [['Nome', dados.nome], ['Presença', dados.presenca ? 'Sim, confirmo presença' : 'Não poderei participar']];
+      if (dados.presenca && dados.tamanho) linhas.push(['Abadá', dados.tamanho]);
+      if (dados.quando) linhas.push(['Enviado em', dados.quando]);
+      recibo = '<div class="recibo">' + linhas.map(([a,b]) => '<div><span>'+a+'</span><b>'+esc(b)+'</b></div>').join('') + '</div>';
+    }
+    const msg = agora
+      ? (dados && dados.presenca ? 'Sua presença está confirmada e o seu abadá já está na lista. Nos vemos na ' + esc(CTX.tema || 'festa') + '! 🎶' : 'Obrigado por nos avisar! Sua resposta foi registrada.')
+      : 'Este formulário já foi respondido e não pode ser preenchido novamente.';
+    el.innerHTML = '<div class="fim"><div class="selo">'+check+'</div><span class="faixa">FORMULÁRIO FINALIZADO</span>'+
+      '<h2>'+(agora ? 'Resposta enviada com sucesso!' : 'Você já respondeu')+'</h2>'+
+      '<p class="msg">'+msg+'</p>'+ recibo +
+      '<p class="fechar">Não é preciso enviar de novo. <b>Você já pode fechar esta página.</b><br>Para mudar alguma resposta, fale com a organização.</p>'+
+      '<img class="rodape-logo" src="/assets/isg-cor.webp" alt="ISG Participações S.A."></div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function iniciar(){
+  if (CTX.estado === 'JA_RESPONDIDO') { telaFinalizado(null, false); return; }
+  if (CTX.estado === 'ABERTO' && lerFim()) { telaFinalizado(lerFim(), false); return; }
   if (CTX.estado !== 'ABERTO') {
     const telas = {
       ENCERRADO:['⏰','Prazo encerrado','O período de confirmação já terminou. Em caso de dúvidas, procure a organização.'],
-      JA_RESPONDIDO:['✅','Resposta já registrada','Este link já foi utilizado. Obrigado pela participação!'],
       INVALIDO:['🔒','Link inválido','Este link não é válido. Confira se copiou o endereço completo ou procure a organização.']
     };
     const [e,t,m] = telas[CTX.estado] || telas.INVALIDO;
@@ -327,12 +371,15 @@
     btn.disabled = true; btn.textContent = 'Enviando...';
     rpc('enviar_resposta', { d })
       .then(r => {
-        if (!r.ok) { btn.disabled=false; btn.textContent='Enviar resposta'; return mostrarErro(r.msg); }
-        el.innerHTML = '<div class="status"><div class="emoji">'+(r.presenca?'🥳':'💌')+'</div>'+
-          '<h2>'+(r.presenca?'Presença confirmada!':'Resposta registrada')+'</h2>'+
-          '<p>'+(r.presenca?'Seu abadá já está na lista. Nos vemos na '+esc(CTX.tema)+'! 🎶':'Que pena! Obrigado por nos avisar.')+'</p>'+
-          '<img class="rodape-logo" src="/assets/isg-cor.webp" alt="ISG Participações S.A."></div>';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!r.ok) {
+          // já existe resposta (outro aparelho / link já usado): mostra como finalizado
+          if (/já existe uma resposta|já foi utilizado/i.test(r.msg || '')) { telaFinalizado(null, false); return; }
+          btn.disabled=false; btn.textContent='Enviar resposta'; return mostrarErro(r.msg);
+        }
+        const fim = { nome: d.nome, presenca: !!r.presenca, tamanho: r.presenca ? d.tamanho : '',
+                      quando: new Date().toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) };
+        salvarFim(fim);
+        telaFinalizado(fim, true);
       })
       .catch(() => { btn.disabled=false; btn.textContent='Enviar resposta'; mostrarErro('Falha de conexão. Tente novamente.'); });
   }
