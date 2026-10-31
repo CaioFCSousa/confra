@@ -19,7 +19,7 @@ create table if not exists public.config (
   prazo               timestamptz not null default '2026-11-10 23:59:59-03',
   prazo_texto         text        not null default '10 de novembro de 2026',
   dominios            text[]      not null default '{oros.com.br,vobys.com.br,trully.com.br}', -- vazio = qualquer domínio
-  empresas            text[]      not null default '{OROS,VOBYS,TRULLY}',
+  empresas            text[]      not null default '{OROS,VOBYS,TRULY}',
   tamanhos            text[]      not null default '{M/G,GG/XG}',
   validar_lista_seduc boolean     not null default true
 );
