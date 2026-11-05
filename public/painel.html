@@ -134,7 +134,15 @@
   .erro{background:var(--rosa-claro);color:var(--vinho);border-left:4px solid var(--vermelho);padding:10px 12px;border-radius:8px;font-size:13px;margin-top:14px}
 
   /* ---------- bloqueio dos envios ---------- */
-  .bloqueio{margin-bottom:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px;align-items:start}
+  .bloqueio{margin-bottom:16px}
+  .bloq-topo h3{font-size:16px;font-weight:700}
+  .bloq-topo p{font-size:12.5px;color:var(--cinza);margin:2px 0 14px}
+  .bloq-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .bloq-item{border:1.5px solid var(--linha);border-radius:14px;padding:14px}
+  .bloq-item .bloq-status{margin-bottom:12px;min-height:74px}
+  .bloq-status h3 small{font-weight:500;color:var(--cinza);font-size:11.5px}
+  .bloq-item .acoes2 .btn{flex:1;justify-content:center;padding:9px 8px;font-size:12px}
+  @media (max-width:1000px){.bloq-grid{grid-template-columns:1fr}}
   .bloq-status{display:flex;gap:14px;align-items:flex-start}
   .bloq-ico{flex:none;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px}
   .bloq-status.aberto .bloq-ico{background:#E8F6EE}
@@ -153,7 +161,6 @@
   .btn.claro{background:var(--fundo);color:var(--preto)}
   .btn.escuro{background:var(--preto);color:#fff}
   .bloq-msg{font-size:12.5px;margin-top:8px;min-height:18px}
-  @media (max-width:800px){.bloqueio{grid-template-columns:1fr}}
 
   /* tooltip dos gráficos */
   #tip{position:fixed;z-index:50;pointer-events:none;background:var(--preto);color:var(--branco);font-size:12.5px;
@@ -368,53 +375,66 @@
     const p = new Intl.DateTimeFormat('sv-SE', { timeZone:'America/Sao_Paulo', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }).format(new Date(iso));
     return p.replace(' ', 'T');
   }
+  const BLOQ = [
+    { tipo:'INTERNO', nome:'Internos',  link:'/interno', prazo:'prazo_interno', msg:'msg_interno' },
+    { tipo:'SEDUC',   nome:'SEDUC',     link:'/seduc',   prazo:'prazo_seduc',   msg:'msg_seduc' },
+    { tipo:'EXTERNO', nome:'Externos (convites QR)', link:'/c/…', prazo:'prazo_externo', msg:'msg_externo' }
+  ];
   function renderBloqueio(){
-    const c = D.config, prazo = c.prazo ? new Date(c.prazo) : null, agora = new Date(D.gerado_em);
-    let cls, ico, est, txt;
-    if (!prazo){ cls='aberto'; ico='🟢'; est='ABERTO'; txt='Os formulários estão recebendo respostas. Nenhum bloqueio programado.'; }
-    else if (prazo > agora){ cls='agendado'; ico='⏰'; est='BLOQUEIO PROGRAMADO'; txt='Os envios serão bloqueados em <b>' + fmtLongo(prazo) + '</b> (horário de Brasília).'; }
-    else { cls='fechado'; ico='🔒'; est='BLOQUEADO'; txt='Os envios estão bloqueados desde <b>' + fmtLongo(prazo) + '</b>. Todos veem só a mensagem abaixo.'; }
+    const c = D.config, agora = new Date(D.gerado_em);
     document.getElementById('bloqueio').innerHTML =
-      '<div class="bloq-status ' + cls + '"><div class="bloq-ico">' + ico + '</div><div><b class="est">' + est + '</b><h3>Bloqueio dos formulários</h3><p>' + txt + '</p></div></div>' +
-      '<div class="bloq-form">' +
-        '<div class="linha"><div style="flex:1;min-width:200px"><label for="bData">Bloquear em (dia e horário de Brasília)</label>' +
-        '<input type="datetime-local" id="bData" value="' + (prazo ? paraInput(c.prazo) : '') + '"></div></div>' +
-        '<label for="bMsg">Mensagem que aparece para todos depois do bloqueio</label>' +
-        '<textarea id="bMsg">' + esc(c.msg_bloqueio || '') + '</textarea>' +
-        '<div class="acoes2">' +
-          '<button class="btn prim" type="button" id="bSalvar">💾 Salvar bloqueio programado</button>' +
-          '<button class="btn escuro" type="button" id="bAgora">🔒 Bloquear agora</button>' +
-          (prazo ? '<button class="btn claro" type="button" id="bReabrir">🔓 Reabrir (sem bloqueio)</button>' : '') +
-        '</div><div class="bloq-msg" id="bRet"></div>' +
-      '</div>';
-    document.getElementById('bSalvar').onclick = () => {
-      const v = document.getElementById('bData').value;
-      if (!v) return retorno('Escolha o dia e o horário do bloqueio.', true);
-      const d = new Date(v + ':00-03:00');
-      salvarBloqueio(d, 'Bloqueio programado para ' + fmtLongo(d) + '.');
-    };
-    document.getElementById('bAgora').onclick = () => {
-      if (!confirm('Bloquear os envios AGORA para todos os formulários?')) return;
-      salvarBloqueio(new Date(), 'Formulários bloqueados.');
-    };
-    const re = document.getElementById('bReabrir');
-    if (re) re.onclick = () => { if (confirm('Reabrir os formulários e remover o bloqueio?')) salvarBloqueio(null, 'Formulários reabertos.'); };
+      '<div class="bloq-topo"><h3>Bloqueio dos formulários</h3><p>Cada link tem a sua data de encerramento. Depois do horário, quem abrir o link vê só a mensagem.</p></div>' +
+      '<div class="bloq-grid">' + BLOQ.map(b => {
+        const prazo = c[b.prazo] ? new Date(c[b.prazo]) : null;
+        let cls, ico, est, txt;
+        if (!prazo){ cls='aberto'; ico='🟢'; est='ABERTO'; txt='Recebendo respostas. Sem data de encerramento.'; }
+        else if (prazo > agora){ cls='agendado'; ico='⏰'; est='PROGRAMADO'; txt='Fecha em <b>' + fmtLongo(prazo) + '</b>.'; }
+        else { cls='fechado'; ico='🔒'; est='BLOQUEADO'; txt='Fechado desde <b>' + fmtLongo(prazo) + '</b>.'; }
+        return '<div class="bloq-item bloq-form" data-tipo="' + b.tipo + '">' +
+          '<div class="bloq-status ' + cls + '"><div class="bloq-ico">' + ico + '</div><div><b class="est">' + est + '</b>' +
+          '<h3>' + b.nome + ' <small>' + b.link + '</small></h3><p>' + txt + '</p></div></div>' +
+          '<label>Fechar em (horário de Brasília)</label>' +
+          '<input type="datetime-local" class="bData" value="' + (prazo ? paraInput(c[b.prazo]) : '') + '">' +
+          '<label style="margin-top:10px">Mensagem depois do bloqueio</label>' +
+          '<textarea class="bMsg">' + esc(c[b.msg] || c.msg_bloqueio || '') + '</textarea>' +
+          '<div class="acoes2">' +
+            '<button class="btn prim" type="button" data-acao="salvar">💾 Salvar data</button>' +
+            '<button class="btn escuro" type="button" data-acao="agora">🔒 Bloquear agora</button>' +
+            (prazo ? '<button class="btn claro" type="button" data-acao="reabrir">🔓 Reabrir</button>' : '') +
+          '</div><div class="bloq-msg"></div></div>';
+      }).join('') + '</div>';
+    document.querySelectorAll('#bloqueio .bloq-item').forEach(box => {
+      const b = BLOQ.find(x => x.tipo === box.dataset.tipo);
+      box.querySelectorAll('button[data-acao]').forEach(btn => btn.onclick = () => {
+        const acao = btn.dataset.acao;
+        if (acao === 'salvar'){
+          const v = box.querySelector('.bData').value;
+          if (!v) return retorno(box, 'Escolha o dia e o horário.', true);
+          const d = new Date(v + ':00-03:00');
+          salvarBloqueio(box, b.tipo, d, b.nome + ': fecha em ' + fmtLongo(d) + '.');
+        } else if (acao === 'agora'){
+          if (confirm('Bloquear AGORA o formulário de ' + b.nome + '?')) salvarBloqueio(box, b.tipo, new Date(), b.nome + ': bloqueado.');
+        } else if (confirm('Reabrir o formulário de ' + b.nome + '?')) salvarBloqueio(box, b.tipo, null, b.nome + ': reaberto.');
+      });
+    });
   }
-  function retorno(m, erro){ const e = document.getElementById('bRet'); e.textContent = m; e.style.color = erro ? 'var(--vinho)' : '#1B6B3A'; }
-  async function salvarBloqueio(data, okMsg){
+  function retorno(box, m, erro){ const e = box.querySelector('.bloq-msg'); e.textContent = m; e.style.color = erro ? 'var(--vinho)' : '#1B6B3A'; }
+  async function salvarBloqueio(box, tipo, data, okMsg){
     try {
-      const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/painel_salvar_bloqueio', {
+      const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/painel_salvar_bloqueio_tipo', {
         method:'POST', headers:{ 'Content-Type':'application/json', apikey:SUPABASE_ANON_KEY, Authorization:'Bearer ' + sessao.token },
-        body: JSON.stringify({ p_prazo: data ? data.toISOString() : null, p_prazo_texto: data ? textoPrazo(data) : null, p_msg: document.getElementById('bMsg').value })
+        body: JSON.stringify({ p_tipo: tipo, p_prazo: data ? data.toISOString() : null, p_msg: box.querySelector('.bMsg').value })
       });
       if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Sem permissão. Entre novamente.' : 'Erro ao salvar (' + r.status + ').');
-      await atualizar(); retorno('✓ ' + okMsg);
-    } catch(e){ retorno(e.message, true); }
+      await atualizar();
+      const novo = document.querySelector('#bloqueio .bloq-item[data-tipo="' + tipo + '"]');
+      if (novo) retorno(novo, '✓ ' + okMsg);
+    } catch(e){ retorno(box, e.message, true); }
   }
 
   function render(){
     renderBloqueio();
-    document.getElementById('atualizado').textContent = 'Atualizado em ' + fmtData(D.gerado_em) + ' · prazo ' + (D.config.prazo_texto || '');
+    document.getElementById('atualizado').textContent = 'Atualizado em ' + fmtData(D.gerado_em) + '';
     const S = GRUPOS.map(statsGrupo);
     const tot = S.reduce((a, s) => ({ resp: a.resp + s.resp, vao: a.vao + s.vao, nao: a.nao + s.nao, pend: a.pend + (s.pend || 0) }), { resp:0, vao:0, nao:0, pend:0 });
 
