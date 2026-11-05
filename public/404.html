@@ -216,9 +216,19 @@
       ? (dados && dados.presenca ? 'Sua presença está confirmada e o seu abadá já está na lista. Nos vemos na ' + esc(CTX.tema || 'festa') + '! 🎶' : 'Obrigado por nos avisar! Sua resposta foi registrada.')
       : 'Este formulário já foi respondido e não pode ser preenchido novamente.';
     el.innerHTML = '<div class="fim"><div class="selo">'+check+'</div><span class="faixa">FORMULÁRIO FINALIZADO</span>'+
-      '<h2>'+(agora ? 'Resposta enviada com sucesso!' : 'Você já respondeu.')+'</h2>'+
+      '<h2>'+(agora ? 'Resposta enviada com sucesso!' : 'Você já respondeu')+'</h2>'+
       '<p class="msg">'+msg+'</p>'+ recibo +
       '<p class="fechar">Não é preciso enviar de novo. <b>Você já pode fechar esta página.</b><br>Para mudar alguma resposta, fale com a organização.</p>'+
+      '<img class="rodape-logo" src="/assets/isg-cor.webp" alt="ISG Participações S.A."></div>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // formulário bloqueado pela organização: mostra só a mensagem
+  function telaBloqueio(msg){
+    const cad = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+    el.innerHTML = '<div class="fim"><div class="selo" style="background:linear-gradient(135deg,#242424,#4a4a4a)">'+cad+'</div>'+
+      '<span class="faixa">ENVIOS ENCERRADOS</span><h2>Formulário encerrado</h2>'+
+      '<p class="msg" style="white-space:pre-line">'+esc(msg || 'As confirmações foram encerradas. Em caso de dúvidas, procure a organização.')+'</p>'+
       '<img class="rodape-logo" src="/assets/isg-cor.webp" alt="ISG Participações S.A."></div>';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -235,6 +245,7 @@
       .catch(() => telaFinalizado(fim, false));
     return;
   }
+  if (CTX.estado === 'ENCERRADO') { telaBloqueio(CTX.msgBloqueio); return; }
   if (CTX.estado !== 'ABERTO') {
     const telas = {
       ENCERRADO:['⏰','Prazo encerrado','O período de confirmação já terminou. Em caso de dúvidas, procure a organização.'],
@@ -275,8 +286,8 @@
     el.innerHTML =
       '<section class="intro">'+
         '<p>Estamos preparando uma confraternização especial para celebrar mais um ano de conquistas, integração e momentos compartilhados!</p>'+
-        '<p>Venha participar do <b>Bloquinho da ISG</b> 🥳🎊.</p>'+
-        '<p>Confirme sua presença!</p>'+
+        '<p>Neste ano, o tema da nossa festa será <span class="tema">'+esc(CTX.tema)+'</span>! 🥳🎊</p>'+
+        '<p>Precisamos confirmar sua disponibilidade para a data prevista e coletar o tamanho do abadá para a confecção.</p>'+
         '<div class="info"><div><small>Data</small><b>'+esc(CTX.dataEvento)+'</b></div>'+
         '<div><small>⏰ Responda até</small><b>'+esc(CTX.prazoTexto)+'</b></div></div>'+
       '</section><hr>'+
@@ -382,6 +393,7 @@
     rpc('enviar_resposta', { d })
       .then(r => {
         if (!r.ok) {
+          if (r.bloqueado) { telaBloqueio(r.msg); return; }
           // já existe resposta (outro aparelho / link já usado): mostra como finalizado
           if (/já existe uma resposta|já foi utilizado/i.test(r.msg || '')) { telaFinalizado(null, false); return; }
           btn.disabled=false; btn.textContent='Enviar resposta'; return mostrarErro(r.msg);

@@ -128,6 +128,28 @@
   .login .btn{width:100%;justify-content:center;margin-top:18px;padding:13px;font-size:15px}
   .erro{background:var(--rosa-claro);color:var(--vinho);border-left:4px solid var(--vermelho);padding:10px 12px;border-radius:8px;font-size:13px;margin-top:14px}
 
+  /* ---------- bloqueio dos envios ---------- */
+  .bloqueio{margin-bottom:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px;align-items:start}
+  .bloq-status{display:flex;gap:14px;align-items:flex-start}
+  .bloq-ico{flex:none;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px}
+  .bloq-status.aberto .bloq-ico{background:#E8F6EE}
+  .bloq-status.agendado .bloq-ico{background:#FFF7C2}
+  .bloq-status.fechado .bloq-ico{background:var(--rosa-claro)}
+  .bloq-status h3{font-size:15px;font-weight:700}
+  .bloq-status p{font-size:13px;color:var(--cinza);margin-top:3px;line-height:1.45}
+  .bloq-status b.est{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:4px}
+  .aberto b.est{background:#E8F6EE;color:#1B6B3A} .agendado b.est{background:#FFF7C2;color:#6B5A00} .fechado b.est{background:var(--rosa-claro);color:var(--vinho)}
+  .bloq-form label{display:block;font-size:12px;font-weight:600;color:var(--cinza);margin:0 0 5px}
+  .bloq-form .linha{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .bloq-form input,.bloq-form textarea{border:1.5px solid var(--linha);border-radius:10px;padding:9px 12px;font:inherit;font-size:13px;width:100%;background:#FAFAFB}
+  .bloq-form textarea{min-height:62px;resize:vertical}
+  .bloq-form input:focus,.bloq-form textarea:focus{outline:none;border-color:var(--vermelho);background:#fff}
+  .bloq-form .acoes2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .btn.claro{background:var(--fundo);color:var(--preto)}
+  .btn.escuro{background:var(--preto);color:#fff}
+  .bloq-msg{font-size:12.5px;margin-top:8px;min-height:18px}
+  @media (max-width:800px){.bloqueio{grid-template-columns:1fr}}
+
   /* tooltip dos gráficos */
   #tip{position:fixed;z-index:50;pointer-events:none;background:var(--preto);color:var(--branco);font-size:12.5px;
     padding:7px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.2);white-space:nowrap;opacity:0;transition:opacity .1s}
@@ -168,6 +190,8 @@
   </header>
 
   <main>
+    <div class="card bloqueio" id="bloqueio"></div>
+
     <div class="kpis" id="kpis"></div>
 
     <h2>Presença por grupo</h2>
@@ -318,7 +342,59 @@
   }
 
   // ================= render =================
+  // ================= bloqueio dos envios =================
+  const fmtLongo = d => d.toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo', weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  const textoPrazo = d => d.toLocaleDateString('pt-BR', { timeZone:'America/Sao_Paulo', day:'numeric', month:'long', year:'numeric' });
+  function paraInput(iso){ // ISO -> "aaaa-mm-ddThh:mm" no horário de Brasília
+    const p = new Intl.DateTimeFormat('sv-SE', { timeZone:'America/Sao_Paulo', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }).format(new Date(iso));
+    return p.replace(' ', 'T');
+  }
+  function renderBloqueio(){
+    const c = D.config, prazo = c.prazo ? new Date(c.prazo) : null, agora = new Date(D.gerado_em);
+    let cls, ico, est, txt;
+    if (!prazo){ cls='aberto'; ico='🟢'; est='ABERTO'; txt='Os formulários estão recebendo respostas. Nenhum bloqueio programado.'; }
+    else if (prazo > agora){ cls='agendado'; ico='⏰'; est='BLOQUEIO PROGRAMADO'; txt='Os envios serão bloqueados em <b>' + fmtLongo(prazo) + '</b> (horário de Brasília).'; }
+    else { cls='fechado'; ico='🔒'; est='BLOQUEADO'; txt='Os envios estão bloqueados desde <b>' + fmtLongo(prazo) + '</b>. Todos veem só a mensagem abaixo.'; }
+    document.getElementById('bloqueio').innerHTML =
+      '<div class="bloq-status ' + cls + '"><div class="bloq-ico">' + ico + '</div><div><b class="est">' + est + '</b><h3>Bloqueio dos formulários</h3><p>' + txt + '</p></div></div>' +
+      '<div class="bloq-form">' +
+        '<div class="linha"><div style="flex:1;min-width:200px"><label for="bData">Bloquear em (dia e horário de Brasília)</label>' +
+        '<input type="datetime-local" id="bData" value="' + (prazo ? paraInput(c.prazo) : '') + '"></div></div>' +
+        '<label for="bMsg">Mensagem que aparece para todos depois do bloqueio</label>' +
+        '<textarea id="bMsg">' + esc(c.msg_bloqueio || '') + '</textarea>' +
+        '<div class="acoes2">' +
+          '<button class="btn prim" type="button" id="bSalvar">💾 Salvar bloqueio programado</button>' +
+          '<button class="btn escuro" type="button" id="bAgora">🔒 Bloquear agora</button>' +
+          (prazo ? '<button class="btn claro" type="button" id="bReabrir">🔓 Reabrir (sem bloqueio)</button>' : '') +
+        '</div><div class="bloq-msg" id="bRet"></div>' +
+      '</div>';
+    document.getElementById('bSalvar').onclick = () => {
+      const v = document.getElementById('bData').value;
+      if (!v) return retorno('Escolha o dia e o horário do bloqueio.', true);
+      const d = new Date(v + ':00-03:00');
+      salvarBloqueio(d, 'Bloqueio programado para ' + fmtLongo(d) + '.');
+    };
+    document.getElementById('bAgora').onclick = () => {
+      if (!confirm('Bloquear os envios AGORA para todos os formulários?')) return;
+      salvarBloqueio(new Date(), 'Formulários bloqueados.');
+    };
+    const re = document.getElementById('bReabrir');
+    if (re) re.onclick = () => { if (confirm('Reabrir os formulários e remover o bloqueio?')) salvarBloqueio(null, 'Formulários reabertos.'); };
+  }
+  function retorno(m, erro){ const e = document.getElementById('bRet'); e.textContent = m; e.style.color = erro ? 'var(--vinho)' : '#1B6B3A'; }
+  async function salvarBloqueio(data, okMsg){
+    try {
+      const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/painel_salvar_bloqueio', {
+        method:'POST', headers:{ 'Content-Type':'application/json', apikey:SUPABASE_ANON_KEY, Authorization:'Bearer ' + sessao.token },
+        body: JSON.stringify({ p_prazo: data ? data.toISOString() : null, p_prazo_texto: data ? textoPrazo(data) : null, p_msg: document.getElementById('bMsg').value })
+      });
+      if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Sem permissão. Entre novamente.' : 'Erro ao salvar (' + r.status + ').');
+      await atualizar(); retorno('✓ ' + okMsg);
+    } catch(e){ retorno(e.message, true); }
+  }
+
   function render(){
+    renderBloqueio();
     document.getElementById('atualizado').textContent = 'Atualizado em ' + fmtData(D.gerado_em) + ' · prazo ' + (D.config.prazo_texto || '');
     const S = GRUPOS.map(statsGrupo);
     const tot = S.reduce((a, s) => ({ resp: a.resp + s.resp, vao: a.vao + s.vao, nao: a.nao + s.nao, pend: a.pend + (s.pend || 0) }), { resp:0, vao:0, nao:0, pend:0 });
@@ -440,7 +516,7 @@
   });
 
   // atualização automática a cada 60s enquanto a aba estiver aberta
-  setInterval(() => { if (D && !document.hidden) atualizar(); }, 60000);
+  setInterval(() => { const a = document.activeElement; if (D && !document.hidden && !(a && a.closest && a.closest('.bloq-form'))) atualizar(); }, 60000);
 
   // ================= Excel =================
   async function baixarExcel(){
