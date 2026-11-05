@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Painel · Confra 2026</title>
+<title>Painel · Confra 2026 · ISG Participações S.A.</title>
 <link rel="icon" href="/assets/isg-cor.webp">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -26,6 +26,10 @@
   .topo{max-width:1240px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
   .topo img{height:40px}
   .topo h1{font-size:17px;font-weight:700;line-height:1.2}
+  .topo .isg-topo{height:30px;padding-left:16px;border-left:1px solid rgba(255,255,255,.18)}
+  .login .isg-login{width:150px;margin:18px auto 0;display:block}
+  .rodape-isg{max-width:1240px;margin:0 auto;padding:0 20px 34px;display:flex;align-items:center;justify-content:center;gap:12px;color:var(--cinza);font-size:12.5px;text-align:center;flex-wrap:wrap}
+  .rodape-isg img{height:34px}
   .topo h1 small{display:block;font-size:12px;font-weight:400;opacity:.65}
   .acoes{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
   .btn{border:0;border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:filter .15s,transform .1s}
@@ -155,7 +159,7 @@
     padding:7px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.2);white-space:nowrap;opacity:0;transition:opacity .1s}
 
   @media (max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}.grupos,.abadas{grid-template-columns:1fr}}
-  @media (max-width:560px){header{position:static}.kpis{grid-template-columns:repeat(2,1fr)}.kpi b{font-size:24px}.topo img{height:32px}.acoes{width:100%}.acoes .btn{flex:1;justify-content:center}}
+  @media (max-width:560px){header{position:static}.topo .isg-topo{height:22px;padding-left:10px}.kpis{grid-template-columns:repeat(2,1fr)}.kpi b{font-size:24px}.topo img{height:32px}.acoes{width:100%}.acoes .btn{flex:1;justify-content:center}}
 </style>
 </head>
 <body>
@@ -165,13 +169,14 @@
   <form class="card" id="formLogin">
     <img src="/assets/logo-confra.webp" alt="CONFRA 2026" style="background:#242424;border-radius:12px;padding:12px">
     <h1>Painel da organização</h1>
-    <p>Acesso restrito</p>
+    <p>ISG Participações S.A. · Acesso restrito</p>
     <label for="lEmail">E-mail</label>
     <input type="email" id="lEmail" autocomplete="username" required>
     <label for="lSenha">Senha</label>
     <input type="password" id="lSenha" autocomplete="current-password" required>
     <button class="btn prim" id="lBtn" type="submit">Entrar</button>
     <div class="erro hidden" id="lErro"></div>
+    <img class="isg-login" src="/assets/isg-cor.webp" alt="ISG Participações S.A.">
   </form>
 </section>
 
@@ -180,7 +185,8 @@
   <header>
     <div class="topo">
       <img src="/assets/logo-confra.webp" alt="CONFRA 2026">
-      <h1>Painel da Confraternização<small id="atualizado">—</small></h1>
+      <img class="isg-topo" src="/assets/isg-branco.webp" alt="ISG Participações S.A.">
+      <h1>Painel da Confraternização ISG<small id="atualizado">—</small></h1>
       <div class="acoes">
         <button class="btn sec" id="bAtualizar" type="button">↻ Atualizar</button>
         <button class="btn prim" id="bExcel" type="button">⬇ Baixar Excel</button>
@@ -228,6 +234,7 @@
     <h2>Convites externos sem resposta</h2>
     <div class="card tabela-wrap rolagem" id="pendentes"></div>
   </main>
+  <footer class="rodape-isg"><img src="/assets/isg-cor.webp" alt="ISG Participações S.A."><span>Confraternização 2026 · Bloquinho da ISG · ISG Participações S.A.</span></footer>
 </div>
 
 <div id="tip"></div>
@@ -523,7 +530,7 @@
     if (!window.ExcelJS){ alert('Não foi possível carregar o gerador de Excel. Verifique a internet e tente de novo.'); return; }
     const b = document.getElementById('bExcel'); b.disabled = true; b.textContent = 'Gerando…';
     try {
-      const wb = new ExcelJS.Workbook(); wb.creator = 'Painel Confra 2026'; wb.created = new Date();
+      const wb = new ExcelJS.Workbook(); wb.creator = 'ISG Participações S.A. · Painel Confra 2026'; wb.company = 'ISG Participações S.A.'; wb.created = new Date();
       const VERM = 'FFD31825', VINHO = 'FFB51E29', PRETO = 'FF242424', ZEBRA = 'FFF7F6F8', BORDA = 'FFE5E5E5', ROXO = 'FF7B3FC4';
       const borda = { top:{style:'thin',color:{argb:BORDA}}, left:{style:'thin',color:{argb:BORDA}}, bottom:{style:'thin',color:{argb:BORDA}}, right:{style:'thin',color:{argb:BORDA}} };
       const T = tamanhos(), S = GRUPOS.map(statsGrupo);
@@ -537,7 +544,7 @@
         c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:PRETO} };
         c.alignment = { vertical:'middle', indent:1 }; ws.getRow(1).height = 30;
         ws.mergeCells(2, 1, 2, colunas);
-        const s = ws.getCell(2, 1); s.value = 'Confraternização 2026 · ' + (D.config.tema || '') + ' · ' + (D.config.data_evento || '') + '   |   Gerado em ' + fmtData(new Date().toISOString());
+        const s = ws.getCell(2, 1); s.value = 'ISG Participações S.A. · Confraternização 2026 · Bloquinho da ISG · ' + (D.config.data_evento || '') + '   |   Gerado em ' + fmtData(new Date().toISOString());
         s.font = { size:10, italic:true, color:{argb:'FF7A7A7A'} }; s.alignment = { indent:1 };
         ws.getRow(2).height = 18;
       }
@@ -571,7 +578,7 @@
       // ---- 1. Resumo ----
       const R = wb.addWorksheet('Resumo', { properties:{ tabColor:{ argb:VERM } } });
       const nc = Math.max(8, T.length + 2);
-      titulo(R, 'RESUMO — CONFRA 2026', nc);
+      titulo(R, 'RESUMO — CONFRA 2026 · ISG PARTICIPAÇÕES S.A.', nc);
       let r = 4;
       subtitulo(R, r, 'Presença por grupo', nc); r++;
       R.getRow(r).values = ['Grupo', 'Convidados', 'Responderam', '% resposta', 'Vão', 'Não vão', 'Pendentes', '% confirmação']; cabecalho(R.getRow(r)); r++;
